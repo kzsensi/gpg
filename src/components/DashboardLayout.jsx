@@ -85,7 +85,7 @@ const DashboardLayout = ({ children, type = 'parent' }) => {
 
             {/* User Avatar */}
             <button
-              onClick={() => navigate(type === 'parent' ? '/parent/profile' : '/tutor/profile-builder')}
+              onClick={() => navigate(type === 'parent' ? '/parent/profile' : '/tutor/profile')}
               className="flex items-center gap-2.5 pl-3 pr-1 py-1 rounded-full hover:bg-slate-50 transition-colors"
             >
               <div className="hidden sm:block text-right">

@@ -1,0 +1,113 @@
+=================================================
+GHAR PE GYAN - MASTER BACKEND & SECURITY STRATEGY
+=================================================
+
+This document is the comprehensive guide to building the backend for GharPeGyan using React + Vite and Supabase. It combines our foundational logic with advanced architecture rules. 
+
+Our primary goals:
+1. Keep the site professional and production-ready.
+2. Ensure it is crash-free under load.
+3. Keep the codebase highly modular so you (as a solo maintainer) can easily change things later without breaking the app.
+
+-------------------------------------------------
+1. THE CORE LOGIC (HOW IT WORKS)
+-------------------------------------------------
+A. The Teacher's "Ad" (Profile)
+   - When a teacher completes their profile (Subjects, Fee, Location, Bio), this data is saved to the `tutor_profiles` database table.
+   - The "Find Teachers" (Search) page simply reads from this table. 
+   - There is no separate "post ad" step. Creating a profile automatically creates their "ad".
+
+B. The Parent's "Requirement"
+   - Parents fill out the "Post Requirement" form. This saves to the `requirements` table.
+   - Tutors browse these requirements in their "Lead Inbox" and can choose to apply/accept them.
+
+C. The Demo & Zoom Link Flow
+   - Parent requests demo -> Saves to `demos` table (Status: Pending).
+   - Tutor accepts -> Updates status to 'Confirmed' AND pastes Zoom link.
+   - Website checks current time. If it is within 5 minutes of the scheduled demo time, the parent's "Join Session" button unlocks and redirects to the Zoom link.
+
+-------------------------------------------------
+2. ARCHITECTURE FLOW & TECH STACK CHOICES
+-------------------------------------------------
+- User visits site → Static React app loads in their browser instantly from CDN (Netlify/Vercel).
+- React initialises the Supabase JS client using environment variables.
+- User logs in via phone OTP handled entirely by Supabase Auth.
+- Every database query from React goes directly to Supabase with a secure token attached.
+- Supabase checks Row Level Security (RLS) policies before returning any data.
+
+**Regarding Next.js, Node.js servers, AWS, MongoDB, etc.:**
+These are NOT "forbidden". They are incredibly powerful tools. However, for Version 1.0, we are choosing not to use them in order to keep the architecture as simple as possible for a solo maintainer. By relying entirely on React + Supabase (Backend-as-a-Service), you don't have to worry about maintaining a server 24/7 or paying for server uptime. If the site grows massive in the future, we can easily transition parts of it to a custom Node server or Next.js—but for now, simplicity equals stability.
+
+-------------------------------------------------
+3. MAINTAINABILITY & MODULARITY (RECHANGABLE)
+-------------------------------------------------
+Because you will be maintaining this app solo, we must write code that is easy to change safely:
+- **Separation of Concerns:** UI components (buttons, cards) will be kept entirely separate from database logic (fetching data). This way, if you want to redesign a page, you won't accidentally break the database connection.
+- **Single Source of Truth:** We will define things like "Subject Lists" or "Status Types" in one single file. If you need to add a new subject, you change it in one place, and the whole app updates.
+- **Fail-Safes:** Live changes shouldn't crash the app. We will wrap our components in "Error Boundaries" so if one part of the page fails, the rest of the site stays online.
+- **Documentation:** Every complex function will have clear comments explaining *why* it does what it does, acting as a guide for your future self.
+
+-------------------------------------------------
+4. USER ROLES & SESSION MANAGEMENT
+-------------------------------------------------
+- **Roles:** parent, tutor, admin. Stored in the `users` table.
+- **Routing Safety:** Every protected page checks the role immediately. If a parent tries to access the tutor dashboard, they are instantly redirected to the homepage.
+- **Incomplete Signup:** On every login, we check if the user has completed their profile. If not, they are redirected to a setup page. We never show an empty dashboard.
+- **Sessions:** Supabase manages sessions securely in localStorage and refreshes tokens silently.
+
+-------------------------------------------------
+5. DATABASE STRUCTURE (THE 5 TABLES)
+-------------------------------------------------
+1. `users` (Managed by Supabase Auth)
+   - id (PK), phone, email, role (parent/tutor/admin), created_at.
+
+2. `tutor_profiles` (The "Ads")
+   - id, user_id (FK), name, bio, subjects (array), boards (array), classes (array), city, area, mode, hourly_rate, phone (hidden by RLS), is_verified, is_visible, profile_photo_url, rating, review_count.
+
+3. `requirements` (Parent Posts)
+   - id, parent_id (FK), subject, class_level, board, city, area, mode, budget, sessions_per_week, demo_needed, status (active/closed).
+
+4. `demos` (The Meetings)
+   - id, parent_id (FK), tutor_id (FK), scheduled_date, scheduled_time, zoom_link, status (pending/confirmed/completed).
+
+5. `reviews` (Parent Feedback)
+   - id, tutor_id (FK), parent_id (FK), rating (1-5), comment, is_visible.
+
+-------------------------------------------------
+6. SECURITY & ROW LEVEL SECURITY (RLS)
+-------------------------------------------------
+- **Environment Variables:** All secret keys (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) live in `.env` and are never pushed to GitHub.
+- **RLS (The Invisible Shield):** RLS acts as a bouncer at the database level.
+   - `tutor_profiles`: Anyone can read visible profiles. Tutors can only edit their own.
+   - `requirements`: Tutors can read active requirements. Only the parent who posted it can edit/close it.
+   - `demos`: Only the specific parent and tutor involved in a demo can view or update its status.
+   - `users`: Your phone number is only readable by YOU. It is strictly hidden from the public.
+
+-------------------------------------------------
+7. INPUT VALIDATION & FILE UPLOADS
+-------------------------------------------------
+- **Validation:** All data is checked in React before hitting the database. (e.g., Phone = 10 digits, Links = must start with https://zoom.us/ or meet.google.com/).
+- **Uploads:** Profile photos and videos are uploaded to Supabase Storage buckets. Images are compressed in the browser before upload to save space and make the site load faster.
+
+-------------------------------------------------
+8. EDGE CASES & CRASH PREVENTION
+-------------------------------------------------
+- **Double Booking:** If two parents try to book the same tutor at the exact same time, the database will check for conflicts and reject the second one with a friendly message.
+- **Deleted Profiles:** If a parent tries to view a saved teacher who deleted their account, the page won't crash; it will gracefully show "Profile no longer available".
+- **Network Errors:** If the user loses internet connection while saving, we catch the error and show a user-friendly popup instead of exposing raw database code.
+
+-------------------------------------------------
+9. PERFORMANCE & FREE TIER MANAGEMENT
+-------------------------------------------------
+- **Pagination:** The search page will only load 10-12 teachers at a time to prevent server overload.
+- **Indexes:** We will set up database indexes (like speed-reading tabs) so finding teachers in a specific city happens in milliseconds.
+- **Inactivity Pauses:** Note that the Supabase Free plan pauses the database after 7 days of 0 traffic. Before launching to real users, an upgrade to the $25/mo Pro plan is recommended to prevent the site going offline unexpectedly.
+- **Monitoring:** We will set up BetterUptime (a free tool) to ping your site every 3 minutes. If it ever goes down, you'll get an immediate alert.
+
+-------------------------------------------------
+10. NEXT STEPS
+-------------------------------------------------
+Step 1: Set up Supabase Client in React.
+Step 2: Connect Phone OTP / Google Login.
+Step 3: Create the 5 Database Tables & RLS Policies.
+Step 4: Connect frontend forms to send data securely.

@@ -11,9 +11,7 @@ import {
 const TeacherProfile = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [showInquiryModal, setShowInquiryModal] = useState(false);
     const [showDemoModal, setShowDemoModal] = useState(false);
-    const [inquirySubmitted, setInquirySubmitted] = useState(false);
 
     return (
         <div className="min-h-screen bg-[#F0F4F8] font-sans text-slate-800 pb-20">
@@ -72,13 +70,7 @@ const TeacherProfile = () => {
                             <BookMarked size={18} /> Save Profile
                         </button>
                         <button onClick={() => setShowDemoModal(true)} className="bg-[#0b5ed7] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-[0_8px_20px_rgba(11,94,215,0.2)]">
-                            Request Free Demo
-                        </button>
-                        <button onClick={() => setShowInquiryModal(true)} className="bg-white border border-slate-300 text-slate-700 px-8 py-3.5 rounded-xl font-bold hover:bg-slate-50 transition-colors">
-                            Send Inquiry
-                        </button>
-                        <button onClick={() => navigate('/chat/1')} className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-8 py-3 rounded-xl font-bold hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2">
-                            <MessageCircle size={18} /> Chat Now
+                            Schedule Free Demo
                         </button>
                     </div>
                 </div>
@@ -187,6 +179,18 @@ const TeacherProfile = () => {
                                     </div>
                                 ))}
                             </div>
+                            <div className="mt-8 pt-6 border-t border-slate-100">
+                                <h3 className="text-lg font-bold text-slate-900 mb-4">Leave a Comment</h3>
+                                <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-slate-200 flex-shrink-0 flex items-center justify-center font-bold text-slate-500">You</div>
+                                    <div className="flex-1">
+                                        <textarea rows={3} placeholder="Write a comment about this teacher..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#0b5ed7] resize-none mb-3"></textarea>
+                                        <div className="flex justify-end">
+                                            <button className="bg-slate-900 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-slate-800 transition-colors">Post Comment</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -249,78 +253,6 @@ const TeacherProfile = () => {
                 </div>
             </main>
 
-            {/* INQUIRY MODAL */}
-            {showInquiryModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setShowInquiryModal(false)}>
-                    <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-between items-center p-6 border-b border-slate-100">
-                            <h3 className="text-xl font-bold text-slate-900">Send Inquiry to Rahul Sharma</h3>
-                            <button onClick={() => setShowInquiryModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
-                        </div>
-                        {!inquirySubmitted ? (
-                            <div className="p-6 space-y-4">
-                                <div>
-                                    <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Your Name *</label>
-                                    <input type="text" placeholder="Enter your full name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#0b5ed7]" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Phone *</label>
-                                        <div className="flex">
-                                            <span className="bg-slate-100 border border-r-0 border-slate-200 rounded-l-xl px-3 py-3 text-sm text-slate-500 font-medium">+91</span>
-                                            <input type="tel" placeholder="9876543210" className="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-3 text-sm outline-none focus:border-[#0b5ed7]" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Email</label>
-                                        <input type="email" placeholder="your@email.com" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#0b5ed7]" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Student Class</label>
-                                        <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#0b5ed7]">
-                                            <option>Select Class</option>
-                                            <option>Class 6-8</option>
-                                            <option>Class 9-10</option>
-                                            <option>Class 11-12</option>
-                                            <option>JEE/NEET Prep</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Subject</label>
-                                        <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#0b5ed7]">
-                                            <option>Select Subject</option>
-                                            <option>Mathematics</option>
-                                            <option>Physics</option>
-                                            <option>Chemistry</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Message *</label>
-                                    <textarea rows={4} placeholder="Tell the tutor about your requirements..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#0b5ed7] resize-none"></textarea>
-                                </div>
-                                <button onClick={() => setInquirySubmitted(true)} className="w-full bg-[#0b5ed7] text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-md flex items-center justify-center gap-2">
-                                    <Send size={16} /> Send Inquiry
-                                </button>
-                                <p className="text-xs text-slate-400 text-center font-medium">Your contact details are shared only after mutual interest.</p>
-                            </div>
-                        ) : (
-                            <div className="p-8 text-center">
-                                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircle2 size={32} className="text-emerald-600" />
-                                </div>
-                                <h4 className="text-xl font-bold text-slate-900 mb-2">Inquiry Sent!</h4>
-                                <p className="text-slate-600 text-sm font-medium mb-6">Rahul Sharma has been notified and will respond within 24 hours.</p>
-                                <button onClick={() => { setShowInquiryModal(false); setInquirySubmitted(false); }} className="bg-[#0b5ed7] text-white px-6 py-2.5 rounded-xl font-bold text-sm">
-                                    Close
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
 
             {/* DEMO REQUEST MODAL */}
             {showDemoModal && (

@@ -4,24 +4,15 @@ import {
   LayoutDashboard,
   User,
   PlusCircle,
-  BookMarked,
-  Heart,
   PlayCircle,
-  Bell,
-  Settings,
   LogOut,
   GraduationCap,
 } from 'lucide-react';
 
 const menuItems = [
-  { label: 'Dashboard Home', path: '/parent/dashboard', icon: LayoutDashboard },
-  { label: 'My Profile + Child', path: '/parent/profile', icon: User },
+  { label: 'My Profile', path: '/parent/profile', icon: User },
   { label: 'Post Requirement', path: '/parent/post-requirement', icon: PlusCircle },
-  { label: 'My Requirements', path: '/parent/requirements', icon: BookMarked },
-  { label: 'Saved Teachers', path: '/parent/saved', icon: Heart },
   { label: 'Demo Requests', path: '/parent/demos', icon: PlayCircle },
-  { label: 'Notifications', path: '/parent/notifications', icon: Bell },
-  { label: 'Reviews + Settings', path: '/parent/settings', icon: Settings },
 ];
 
 const ParentSidebar = () => {
@@ -29,7 +20,7 @@ const ParentSidebar = () => {
   const location = useLocation();
 
   const isActive = (path) =>
-    location.pathname === path || (path !== '/parent/dashboard' && location.pathname.startsWith(path + '/'));
+    location.pathname === path || location.pathname.startsWith(path + '/');
 
   return (
     <aside className="flex flex-col h-full bg-white border-r border-slate-200">

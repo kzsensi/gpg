@@ -1,0 +1,27 @@
+GharPeGyan Sitemap
+==================
+
+PUBLIC
+  /                        Home
+  /search                  Find a Teacher
+  /teacher/:id             Teacher Profile
+
+AUTH
+  /login                   Login + Signup (one page)
+  /otp-verify              OTP Screen
+
+PARENT
+  /parent/dashboard        Home + overview
+  /parent/profile          Profile + child details
+  /parent/post-requirement Post tuition requirement
+  /parent/demos            Demo requests
+
+TUTOR
+  /tutor/dashboard         Home + overview
+  /tutor/profile           Build + edit profile
+  /tutor/leads             Incoming leads
+  /tutor/demos             Demo management
+
+LEGAL (just pages, no logic)
+  /terms
+  /privacy

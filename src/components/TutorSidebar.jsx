@@ -3,25 +3,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Layout,
   User,
-  ShieldCheck,
-  Video,
   Mail,
   PlayCircle,
-  Landmark,
-  Settings,
   GraduationCap,
   LogOut,
 } from 'lucide-react';
 
 const menuItems = [
-  { label: 'Dashboard Home', path: '/tutor/dashboard', icon: Layout },
-  { label: 'Profile Builder', path: '/tutor/profile-builder', icon: User },
-  { label: 'Verification Status', path: '/tutor/verification', icon: ShieldCheck },
-  { label: 'Media Upload', path: '/tutor/media', icon: Video },
+  { label: 'My Profile', path: '/tutor/profile', icon: User },
   { label: 'Lead Inbox', path: '/tutor/leads', icon: Mail },
   { label: 'Demo Management', path: '/tutor/demos', icon: PlayCircle },
-  { label: 'Fee & Availability', path: '/tutor/fees', icon: Landmark },
-  { label: 'Settings', path: '/tutor/settings', icon: Settings },
 ];
 
 const TutorSidebar = () => {

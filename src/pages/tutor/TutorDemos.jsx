@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { PlayCircle, Clock, CheckCircle2, Calendar, Video, X, User, MapPin, BookOpen, Phone, MessageCircle } from 'lucide-react';
+import { PlayCircle, Clock, CheckCircle2, Calendar, Video, X, User, MapPin, BookOpen, Phone, Link as LinkIcon } from 'lucide-react';
 
 const demosData = [
   { id: 1, parent: 'Pooja Singh', student: 'Aarav Singh', subject: 'Physics', class: 'Class 11', date: 'May 28, 2026', time: '5:00 PM', mode: 'Online (Google Meet)', status: 'upcoming', phone: '+91 98765 43210' },
@@ -82,22 +82,28 @@ const TutorDemos = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
                   {demo.status === 'upcoming' && (
-                    <>
-                      <button className="bg-[#0b5ed7] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-700 flex items-center gap-2">
-                        <Video size={16} /> Start Session
-                      </button>
-                      <button className="border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2">
-                        <Calendar size={14} /> Reschedule
-                      </button>
-                      <button className="border border-red-200 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 flex items-center gap-2">
-                        <X size={14} /> Cancel
-                      </button>
-                    </>
+                    <div className="w-full">
+                      <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Meeting Link</label>
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="Paste Zoom / Google Meet link here" className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#0b5ed7]" defaultValue={demo.mode.includes('Online') ? 'https://zoom.us/j/1234567890' : ''} />
+                        <button className="bg-[#0b5ed7] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-700 flex items-center gap-2">
+                          <LinkIcon size={16} /> Save Link
+                        </button>
+                      </div>
+                      <div className="flex gap-3 mt-4">
+                        <button className="border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2">
+                          <Calendar size={14} /> Reschedule
+                        </button>
+                        <button className="border border-red-200 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 flex items-center gap-2">
+                          <X size={14} /> Cancel
+                        </button>
+                      </div>
+                    </div>
                   )}
                   {demo.status === 'pending' && (
-                    <>
+                    <div className="flex gap-3">
                       <button className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-700 flex items-center gap-2">
                         <CheckCircle2 size={16} /> Accept
                       </button>
@@ -107,12 +113,7 @@ const TutorDemos = () => {
                       <button className="border border-red-200 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 flex items-center gap-2">
                         <X size={14} /> Decline
                       </button>
-                    </>
-                  )}
-                  {demo.status === 'completed' && (
-                    <button className="border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2">
-                      <MessageCircle size={16} /> Follow Up
-                    </button>
+                    </div>
                   )}
                 </div>
               </div>

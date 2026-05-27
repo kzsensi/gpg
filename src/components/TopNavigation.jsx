@@ -23,13 +23,15 @@ const TopNavigation = () => {
 
           <nav className="hidden lg:flex items-center gap-8 font-medium text-slate-700 text-[15px]">
             <button onClick={() => navigate('/')} className={`transition-colors ${location.pathname === '/' ? 'text-[#0b5ed7] font-semibold border-b-2 border-[#0b5ed7] pb-1' : 'hover:text-[#0b5ed7]'}`}>Home</button>
-            <button onClick={() => navigate('/search')} className={`transition-colors ${isActive('/search') ? 'text-[#0b5ed7] font-semibold border-b-2 border-[#0b5ed7] pb-1' : 'hover:text-[#0b5ed7]'}`}>Find Teachers</button>
-            <button onClick={() => navigate('/parent/dashboard')} className={`transition-colors ${isActive('/parent') ? 'text-[#0b5ed7] font-semibold border-b-2 border-[#0b5ed7] pb-1' : 'hover:text-[#0b5ed7]'}`}>My Dashboard</button>
+            {!location.pathname.startsWith('/tutor') && (
+              <button onClick={() => navigate('/search')} className={`transition-colors ${isActive('/search') ? 'text-[#0b5ed7] font-semibold border-b-2 border-[#0b5ed7] pb-1' : 'hover:text-[#0b5ed7]'}`}>Find Teachers</button>
+            )}
+            <button onClick={() => navigate('/parent/profile')} className={`transition-colors ${isActive('/parent') ? 'text-[#0b5ed7] font-semibold border-b-2 border-[#0b5ed7] pb-1' : 'hover:text-[#0b5ed7]'}`}>My Profile</button>
           </nav>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            <button onClick={() => navigate('/tutor/dashboard')} className="hidden lg:flex items-center gap-2 text-slate-700 font-medium px-4 py-2.5 rounded-full border border-slate-200 hover:bg-slate-50 transition-colors text-sm">
-              <User size={18} /> Tutor Panel
+            <button onClick={() => navigate('/tutor/profile')} className="hidden lg:flex items-center gap-2 text-slate-700 font-medium px-4 py-2.5 rounded-full border border-slate-200 hover:bg-slate-50 transition-colors text-sm">
+              <User size={18} /> Tutor Profile
             </button>
             <button onClick={() => navigate('/login')} className="bg-[#0b5ed7] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all flex items-center gap-2 text-sm shadow-md">
               Login <ArrowRight size={16} />

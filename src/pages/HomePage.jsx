@@ -115,9 +115,6 @@ const HomePage = () => {
                         <nav className="hidden lg:flex items-center gap-8 font-medium text-slate-700 text-[15px]">
                             <a href="#" onClick={(e) => { e.preventDefault(); navigate('/') }} className="text-[#0b5ed7] font-semibold border-b-2 border-[#0b5ed7] pb-1">Home</a>
                             <a href="#" onClick={(e) => { e.preventDefault(); navigate('/search') }} className="hover:text-[#0b5ed7] transition-colors">Find Teachers</a>
-                            <a href="#" className="hover:text-[#0b5ed7] transition-colors">Live Leads</a>
-                            <a href="#" className="hover:text-[#0b5ed7] transition-colors">How It Works</a>
-                            <a href="#" className="hover:text-[#0b5ed7] transition-colors">Blog</a>
                         </nav>
 
                         <div className="flex items-center gap-3 sm:gap-4">

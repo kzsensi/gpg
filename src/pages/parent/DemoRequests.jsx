@@ -83,9 +83,12 @@ const DemoRequests = () => {
                 {demo.status !== 'completed' && (
                   <div className="flex gap-3 mt-4 pt-4 border-t border-slate-100">
                     {demo.status === 'confirmed' && (
-                      <button className="bg-[#0b5ed7] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-700 flex items-center gap-2">
-                        <Video size={16} /> Join Session
-                      </button>
+                      <div className="flex flex-col gap-1">
+                        <button disabled className="bg-slate-200 text-slate-400 px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 cursor-not-allowed">
+                          <Video size={16} /> Join Session
+                        </button>
+                        <span className="text-[10px] text-slate-500 font-bold text-center">Link unlocks at scheduled time</span>
+                      </div>
                     )}
                     <button className="border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2">
                       <Calendar size={14} /> Reschedule
