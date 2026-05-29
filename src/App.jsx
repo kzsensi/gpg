@@ -32,13 +32,19 @@ import OTPVerify from './pages/auth/OTPVerify';
 import ParentDashboard from './pages/parent/ParentDashboard';
 import ParentProfile from './pages/parent/ParentProfile';
 import PostRequirement from './pages/parent/PostRequirement';
+import ParentRequirements from './pages/parent/ParentRequirements';
 import DemoRequests from './pages/parent/DemoRequests';
+import ParentMatches from './pages/parent/ParentMatches';
 
 // Tutor Dashboard
 import TutorDashboard from './pages/tutor/TutorDashboard';
 import ProfileBuilder from './pages/tutor/ProfileBuilder';
 import LeadInbox from './pages/tutor/LeadInbox';
 import TutorDemos from './pages/tutor/TutorDemos';
+import TutorStudents from './pages/tutor/TutorStudents';
+import TutorReviews from './pages/tutor/TutorReviews';
+import TutorAvailability from './pages/tutor/TutorAvailability';
+import Messages from './pages/shared/Messages';
 
 // Admin Dashboard
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -49,6 +55,7 @@ import AdminDemos from './pages/admin/AdminDemos';
 // Legal
 import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
+import HelpSupport from './pages/HelpSupport';
 
 function App() {
   return (
@@ -71,6 +78,7 @@ function App() {
           <ParentDashboard />
         </ProtectedRoute>
       } />
+
       <Route path="/parent/profile" element={
         <ProtectedRoute role="parent">
           <ParentProfile />
@@ -81,9 +89,24 @@ function App() {
           <PostRequirement />
         </ProtectedRoute>
       } />
+      <Route path="/parent/requirements" element={
+        <ProtectedRoute role="parent">
+          <ParentRequirements />
+        </ProtectedRoute>
+      } />
       <Route path="/parent/demos" element={
         <ProtectedRoute role="parent">
           <DemoRequests />
+        </ProtectedRoute>
+      } />
+      <Route path="/parent/matches" element={
+        <ProtectedRoute role="parent">
+          <ParentMatches />
+        </ProtectedRoute>
+      } />
+      <Route path="/parent/messages" element={
+        <ProtectedRoute role="parent">
+          <Messages type="parent" />
         </ProtectedRoute>
       } />
 
@@ -92,6 +115,11 @@ function App() {
       <Route path="/tutor/dashboard" element={
         <ProtectedRoute role="tutor">
           <TutorDashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/tutor/messages" element={
+        <ProtectedRoute role="tutor">
+          <Messages type="tutor" />
         </ProtectedRoute>
       } />
       <Route path="/tutor/profile" element={
@@ -107,6 +135,21 @@ function App() {
       <Route path="/tutor/demos" element={
         <ProtectedRoute role="tutor">
           <TutorDemos />
+        </ProtectedRoute>
+      } />
+      <Route path="/tutor/students" element={
+        <ProtectedRoute role="tutor">
+          <TutorStudents />
+        </ProtectedRoute>
+      } />
+      <Route path="/tutor/reviews" element={
+        <ProtectedRoute role="tutor">
+          <TutorReviews />
+        </ProtectedRoute>
+      } />
+      <Route path="/tutor/availability" element={
+        <ProtectedRoute role="tutor">
+          <TutorAvailability />
         </ProtectedRoute>
       } />
 
@@ -136,6 +179,7 @@ function App() {
       {/* ── Legal Pages ── */}
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/help" element={<HelpSupport />} />
 
       {/* ── Fallback ── */}
       {/* Any unknown URL redirects to homepage */}

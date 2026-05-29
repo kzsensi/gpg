@@ -45,13 +45,9 @@ const ProtectedRoute = ({ children, role }) => {
     return <Navigate to="/" replace />;
   }
 
-  // Profile check: ONLY redirect brand-new users who have NO name at all.
-  // We check user_metadata.name (set at signup) as the primary signal.
-  // This avoids blocking tutors who have a profile but RLS prevented loading it.
-  const userName = user?.user_metadata?.name || profile?.name;
-  const isNewUser = !userName;
-
-  if (isNewUser && userRole !== 'admin') {
+  // Profile check: Redirect users whose profile is incomplete
+  // We use profileComplete from AuthContext, which now checks all mandatory fields
+  if (!profileComplete && userRole !== 'admin') {
     const profilePath = userRole === 'tutor' ? '/tutor/profile' : '/parent/profile';
     // Prevent infinite redirect if they're already on the profile page
     if (location.pathname !== profilePath) {

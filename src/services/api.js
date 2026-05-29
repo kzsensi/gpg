@@ -76,7 +76,19 @@ export const apiTutors = {
 
     if (error) throw new Error(error.message);
     return data;
-  }
+  },
+
+  updateProfile: async (userId, profileData) => {
+    const { data, error } = await supabase
+      .from('tutor_profiles')
+      .update({ ...profileData, updated_at: new Date() })
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
 };
 
 // ==========================================
@@ -265,7 +277,120 @@ export const apiDemos = {
 };
 
 // ==========================================
-// 4. ADMIN — Full-access CRUD (requires admin RLS policies in Supabase)
+// 4. REVIEWS
+// ==========================================
+
+export const apiReviews = {
+  create: async (reviewData) => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert([{ 
+        tutor_id: reviewData.tutor_id,
+        parent_id: reviewData.parent_id,
+        rating: reviewData.rating,
+        comment: reviewData.review_text,
+        parent_name: reviewData.parent_name
+      }])
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  getByTutor: async (tutorId) => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('tutor_id', tutorId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data;
+  }
+};
+
+// ==========================================
+// 5. MESSAGES (Real-Time Chat)
+// ==========================================
+
+export const apiMessages = {
+  /**
+   * Get all messages between current user and a specific contact
+   */
+  getConversation: async (userId, contactId) => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .or(`and(sender_id.eq.${userId},receiver_id.eq.${contactId}),and(sender_id.eq.${contactId},receiver_id.eq.${userId})`)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return data || [];
+  },
+
+  /**
+   * Send a new message
+   */
+  send: async (senderId, receiverId, content, senderName, senderRole, receiverName, receiverRole) => {
+    const { data, error } = await supabase
+      .from('messages')
+      .insert([{ 
+        sender_id: senderId, 
+        receiver_id: receiverId, 
+        content,
+        sender_name: senderName,
+        sender_role: senderRole,
+        receiver_name: receiverName,
+        receiver_role: receiverRole
+      }])
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  /**
+   * Get all unique contacts the user has chatted with
+   */
+  getContacts: async (userId) => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    
+    // Extract unique contacts and their latest message
+    const contactsMap = new Map();
+    
+    (data || []).forEach(msg => {
+      const isSender = msg.sender_id === userId;
+      const contactId = isSender ? msg.receiver_id : msg.sender_id;
+      const contactName = isSender ? msg.receiver_name : msg.sender_name;
+      const contactRole = isSender ? msg.receiver_role : msg.sender_role;
+      
+      if (!contactId) return;
+      
+      if (!contactsMap.has(contactId)) {
+        contactsMap.set(contactId, {
+          id: contactId,
+          name: contactName || 'User',
+          role: contactRole || 'user',
+          lastMessage: msg.content,
+          time: msg.created_at
+        });
+      }
+    });
+
+    return Array.from(contactsMap.values());
+  }
+};
+
+// ==========================================
+// 6. ADMIN — Full-access CRUD (requires admin RLS policies in Supabase)
 // ==========================================
 
 export const apiAdmin = {

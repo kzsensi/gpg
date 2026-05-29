@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import DashboardLayout from '../../components/DashboardLayout';
 import { apiRequirements, apiDemos } from '../../services/api';
-import { BookMarked, PlayCircle, PlusCircle, ArrowRight, User } from 'lucide-react';
+import { BookMarked, PlayCircle, PlusCircle, ArrowRight, User, Users, MessageCircle, Clock, Search } from 'lucide-react';
 
 const ParentDashboard = () => {
   const { user, profile } = useAuth();
@@ -54,136 +54,120 @@ const ParentDashboard = () => {
 
   return (
     <DashboardLayout type="parent">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         
-        {/* Welcome Banner */}
-        <div className="bg-gradient-to-br from-[#0b5ed7] to-indigo-600 rounded-2xl p-8 text-white mb-8 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
-          <div className="absolute bottom-0 right-10 w-32 h-32 bg-white opacity-10 rounded-full translate-y-1/3"></div>
-          <div className="relative z-10">
-            <h1 className="text-3xl font-bold mb-2">Welcome back, {firstName}! 👋</h1>
-            <p className="text-blue-100 max-w-xl text-lg">
-              Manage your tuition requirements and upcoming demo classes all in one place.
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-1">Good morning, {firstName}! 👋</h1>
+            <p className="text-slate-500 text-base">
+              Let's find the best teacher for your child.
             </p>
           </div>
+          <button 
+            onClick={() => navigate('/parent/post-requirement')}
+            className="bg-[#0b5ed7] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm shrink-0"
+          >
+            <PlusCircle size={18} /> Post Requirement
+          </button>
         </div>
 
+        {/* Stats Row */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-pulse">
-            <div className="h-32 bg-slate-100 rounded-2xl"></div>
-            <div className="h-32 bg-slate-100 rounded-2xl"></div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-pulse">
+            {[1,2,3,4].map(i => <div key={i} className="h-28 bg-white border border-slate-200 rounded-xl"></div>)}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Stat Card 1 */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-[#0b5ed7] shrink-0">
-                <BookMarked size={28} />
-              </div>
-              <div>
-                <p className="text-slate-500 font-medium mb-1">Active Requirements</p>
-                <h3 className="text-3xl font-bold text-slate-800">{stats.activeRequirements}</h3>
-              </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col">
+              <p className="text-sm font-semibold text-slate-500 mb-2">Active Requirements</p>
+              <h3 className="text-3xl font-bold text-slate-900 mb-1">{stats.activeRequirements}</h3>
+              <button onClick={() => navigate('/parent/post-requirement')} className="text-xs font-semibold text-[#0b5ed7] hover:underline self-start mt-auto">View all</button>
             </div>
 
-            {/* Stat Card 2 */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
-                <PlayCircle size={28} />
-              </div>
-              <div>
-                <p className="text-slate-500 font-medium mb-1">Upcoming Demos</p>
-                <h3 className="text-3xl font-bold text-slate-800">{stats.upcomingDemos}</h3>
-              </div>
+            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col">
+              <p className="text-sm font-semibold text-slate-500 mb-2">Upcoming Demos</p>
+              <h3 className="text-3xl font-bold text-slate-900 mb-1">{stats.upcomingDemos}</h3>
+              <button onClick={() => navigate('/parent/demos')} className="text-xs font-semibold text-[#0b5ed7] hover:underline self-start mt-auto">View all</button>
+            </div>
+
+            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col">
+              <p className="text-sm font-semibold text-slate-500 mb-2">Teacher Matches</p>
+              <h3 className="text-3xl font-bold text-slate-900 mb-1">0</h3>
+              <button className="text-xs font-semibold text-[#0b5ed7] hover:underline self-start mt-auto">View all</button>
+            </div>
+
+            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col">
+              <p className="text-sm font-semibold text-slate-500 mb-2">Messages</p>
+              <h3 className="text-3xl font-bold text-slate-900 mb-1">0</h3>
+              <button className="text-xs font-semibold text-[#0b5ed7] hover:underline self-start mt-auto">View all</button>
             </div>
           </div>
         )}
 
-        {/* Quick Actions & Recent Demos */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-slate-800">Upcoming Demo Classes</h2>
-                <button onClick={() => navigate('/parent/demos')} className="text-sm font-semibold text-[#0b5ed7] hover:underline">
-                  View All
+          {/* Upcoming Demos */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-6">Upcoming Demo</h2>
+            
+            {loading ? (
+               <div className="h-32 bg-slate-50 rounded-lg animate-pulse"></div>
+            ) : recentDemos.length > 0 ? (
+              <div className="space-y-4">
+                {recentDemos.slice(0, 1).map((demo) => (
+                  <div key={demo.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-slate-200 gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 border border-slate-200">
+                        <User size={24} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-900">{demo.tutor_profiles?.name || 'Tutor'}</p>
+                        <p className="text-[13px] text-slate-500 font-medium">Maths Tutor • 6 Yrs Exp</p>
+                        <p className="text-[13px] font-semibold text-slate-700 mt-1 flex items-center gap-1.5">
+                          <Clock size={14} className="text-slate-400" />
+                          {demo.scheduled_at 
+                            ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(demo.scheduled_at))
+                            : 'Waiting to schedule'}
+                        </p>
+                      </div>
+                    </div>
+                    <button onClick={() => navigate('/parent/demos')} className="bg-[#0b5ed7] text-white px-5 py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors shadow-sm shrink-0">
+                      View Demo
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 bg-slate-50 rounded-lg border border-slate-200 border-dashed">
+                <PlayCircle size={32} className="mx-auto text-slate-400 mb-3" />
+                <p className="text-slate-600 font-medium text-sm">No upcoming demos</p>
+                <button onClick={() => navigate('/search')} className="mt-3 text-sm font-semibold text-[#0b5ed7] hover:underline">
+                  Find a teacher to request one
                 </button>
               </div>
-              
-              {loading ? (
-                 <div className="space-y-4">
-                   <div className="h-20 bg-slate-50 rounded-xl"></div>
-                   <div className="h-20 bg-slate-50 rounded-xl"></div>
-                 </div>
-              ) : recentDemos.length > 0 ? (
-                <div className="space-y-4">
-                  {recentDemos.map((demo) => (
-                    <div key={demo.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-blue-100 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
-                          <User size={20} />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-800">{demo.tutor_profiles?.name || 'Tutor'}</p>
-                          <p className="text-sm text-slate-500">
-                            {demo.scheduled_at 
-                              ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(demo.scheduled_at))
-                              : 'Waiting for tutor to schedule'}
-                          </p>
-                        </div>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        demo.status === 'accepted' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                      }`}>
-                        {demo.status === 'accepted' ? 'Scheduled' : 'Pending'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 bg-slate-50 rounded-xl border border-slate-100 border-dashed">
-                  <PlayCircle size={40} className="mx-auto text-slate-300 mb-3" />
-                  <p className="text-slate-500 font-medium">No upcoming demos</p>
-                  <button onClick={() => navigate('/search')} className="mt-4 text-sm font-semibold text-[#0b5ed7] hover:underline">
-                    Find a tutor to request one
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
-          <div>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-              <h2 className="text-xl font-bold text-slate-800 mb-6">Quick Actions</h2>
-              
-              <div className="space-y-3">
-                <button 
-                  onClick={() => navigate('/parent/post-requirement')}
-                  className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-[#0b5ed7] hover:shadow-md transition-all group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 text-[#0b5ed7] flex items-center justify-center">
-                      <PlusCircle size={20} />
-                    </div>
-                    <span className="font-semibold text-slate-700 group-hover:text-slate-900">Post Requirement</span>
-                  </div>
-                  <ArrowRight size={18} className="text-slate-400 group-hover:text-[#0b5ed7] transition-transform group-hover:translate-x-1" />
-                </button>
-
-                <button 
-                  onClick={() => navigate('/search')}
-                  className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-indigo-500 hover:shadow-md transition-all group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                      <User size={20} />
-                    </div>
-                    <span className="font-semibold text-slate-700 group-hover:text-slate-900">Find Teachers</span>
-                  </div>
-                  <ArrowRight size={18} className="text-slate-400 group-hover:text-indigo-600 transition-transform group-hover:translate-x-1" />
-                </button>
-              </div>
+          {/* Quick Actions */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-6">Quick Actions</h2>
+            <div className="space-y-3">
+              <button 
+                onClick={() => navigate('/parent/post-requirement')}
+                className="w-full flex items-center gap-3 p-3.5 rounded-lg border border-slate-200 hover:border-[#0b5ed7] transition-colors"
+              >
+                <PlusCircle size={20} className="text-[#0b5ed7]" />
+                <span className="font-semibold text-slate-700 text-sm">Post New Requirement</span>
+              </button>
+              <button 
+                onClick={() => navigate('/search')}
+                className="w-full flex items-center gap-3 p-3.5 rounded-lg border border-slate-200 hover:border-[#0b5ed7] transition-colors"
+              >
+                <Search size={20} className="text-[#0b5ed7]" />
+                <span className="font-semibold text-slate-700 text-sm">Find Teachers</span>
+              </button>
             </div>
           </div>
 

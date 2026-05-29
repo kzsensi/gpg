@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import TopNavigation from '../components/TopNavigation';
 import { useAuth } from '../contexts/AuthContext';
-import { apiTutors, apiDemos } from '../services/api';
+import { apiTutors, apiDemos, apiReviews } from '../services/api';
 import {
   Star, ShieldCheck, MapPin, Briefcase, ArrowLeft,
   PlayCircle, Users, BookMarked, Calendar,
   Activity, Landmark, X, CheckCircle2, AlertCircle,
-  MonitorPlay, Home, User, BookOpen, Phone
+  MonitorPlay, Home, User, BookOpen, Phone, Clock
 } from 'lucide-react';
 
 // ── Skeleton for loading state ──
@@ -65,7 +65,7 @@ const DemoModal = ({ tutor, onClose }) => {
         parent_id: user.id,
         tutor_id: tutor.user_id,
         status: 'pending',
-        note: `${form.subject} — ${form.mode}. ${form.note}`.trim(),
+        note: `[From: ${user.user_metadata?.name || 'Parent'} | For: ${user.user_metadata?.childName || user.user_metadata?.name || 'Student'}] ${form.subject} — ${form.mode}. ${form.note}`.trim(),
       });
       setSuccess(true);
     } catch (err) {
@@ -153,20 +153,26 @@ const TeacherProfile = () => {
   const { isAuthenticated } = useAuth();
 
   const [tutor, setTutor] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showDemoModal, setShowDemoModal] = useState(false);
 
   useEffect(() => {
-    const fetchTutor = async () => {
+    const fetchTutorAndReviews = async () => {
       if (!id) return;
       setLoading(true); setError('');
       try {
-        const data = await apiTutors.getTutorById(id);
-        if (!data) {
+        const [tutorData, reviewsData] = await Promise.all([
+          apiTutors.getTutorById(id),
+          apiReviews.getByTutor(id).catch(() => []) // Fetch reviews, empty array if fails
+        ]);
+        
+        if (!tutorData) {
           setError('not_found');
         } else {
-          setTutor(data);
+          setTutor(tutorData);
+          setReviews(reviewsData);
         }
       } catch (err) {
         setError(err.message || 'Could not load tutor profile.');
@@ -174,7 +180,7 @@ const TeacherProfile = () => {
         setLoading(false);
       }
     };
-    fetchTutor();
+    fetchTutorAndReviews();
   }, [id]);
 
   const handleDemoClick = () => {
@@ -351,6 +357,45 @@ const TeacherProfile = () => {
                     <p className="text-sm text-slate-400 mt-1">You can still request a demo to learn more.</p>
                   </div>
                 )}
+
+                {/* Reviews Section */}
+                {reviews.length > 0 && (
+                  <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm mt-8">
+                    <h2 className="text-xl font-bold text-slate-900 mb-6 border-b border-slate-100 pb-3 flex items-center gap-2">
+                      <Star className="text-amber-400 fill-amber-400" size={24} /> 
+                      Parent Reviews
+                    </h2>
+                    <div className="space-y-6">
+                      {reviews.map((review) => (
+                        <div key={review.id} className="pb-6 border-b border-slate-100 last:border-0 last:pb-0">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center shrink-0">
+                                {(review.parent_name || 'P').charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-slate-900 text-[15px]">{review.parent_name || 'Parent'}</h4>
+                                <p className="text-xs text-slate-500 font-medium">
+                                  {new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(review.created_at))}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex text-amber-400">
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <Star key={star} size={14} className={star <= review.rating ? 'fill-amber-400' : 'text-slate-200'} />
+                              ))}
+                            </div>
+                          </div>
+                          {review.comment && (
+                            <p className="text-slate-700 text-[15px] leading-relaxed ml-13 pl-[52px]">
+                              "{review.comment}"
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Right Sidebar */}
@@ -401,6 +446,29 @@ const TeacherProfile = () => {
                     Slots subject to availability. Book a demo to secure your preferred time.
                   </p>
                 </div>
+
+                {/* Detailed Availability */}
+                {tutor.availability && Object.keys(tutor.availability).length > 0 && (
+                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                    <h3 className="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2">
+                      <Clock className="text-indigo-600" size={20} /> Availability
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.entries(tutor.availability).filter(([_, times]) => times.length > 0).map(([day, times]) => (
+                        <div key={day} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0 last:pb-0">
+                          <span className="text-slate-700 font-bold text-sm">{day}</span>
+                          <div className="flex gap-1.5 flex-wrap justify-end">
+                            {times.map(t => (
+                              <span key={t} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded capitalize">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Book Demo CTA */}
                 <div className="bg-gradient-to-br from-[#0b5ed7] to-indigo-600 rounded-2xl p-6 text-white text-center shadow-lg">

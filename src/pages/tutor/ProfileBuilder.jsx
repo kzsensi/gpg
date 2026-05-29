@@ -27,6 +27,7 @@ const ProfileBuilder = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isSaved, setIsSaved] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -71,6 +72,10 @@ const ProfileBuilder = () => {
   const toggleItem = (list, setList, item) => {
     setList(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
+
+  const canProceedStep1 = () => !!(formData.name?.trim() && formData.phone?.trim() && formData.city?.trim());
+  const canProceedStep2 = () => selectedSubjects.length > 0;
+  const canSave = () => canProceedStep1() && canProceedStep2() && formData.experience_years !== '';
 
   const handleSave = async () => {
     setError(null);
@@ -123,13 +128,44 @@ const ProfileBuilder = () => {
       await Promise.race([upsertPromise, timeoutPromise]);
       
       await refreshProfile();
-      navigate('/tutor/dashboard');
+      setIsSaved(true);
+      window.scrollTo(0, 0);
     } catch (err) {
       setError(`Error in save: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
+
+  if (isSaved) {
+    return (
+      <DashboardLayout type="tutor">
+        <div className="max-w-3xl mx-auto py-12 text-center">
+          <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check size={40} className="text-emerald-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-4">Profile Saved Successfully!</h1>
+          <p className="text-lg text-slate-600 mb-8 max-w-lg mx-auto">
+            Your tutor profile is now live and visible to parents and students. They can now find you in search results and request demos.
+          </p>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => navigate('/tutor/dashboard')}
+              className="px-6 py-3 bg-[#0b5ed7] text-white rounded-xl font-bold shadow-md hover:bg-blue-700 transition-colors"
+            >
+              Go to Dashboard
+            </button>
+            <button
+              onClick={() => setIsSaved(false)}
+              className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors"
+            >
+              Edit Profile Again
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const inputCls = "w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 focus:border-[#0b5ed7] focus:ring-2 focus:ring-blue-50 outline-none transition-all";
   const labelCls = "block text-sm font-semibold text-slate-700 mb-1.5";
@@ -434,8 +470,8 @@ const ProfileBuilder = () => {
           {currentStep === steps.length ? (
             <button
               onClick={handleSave}
-              disabled={loading}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-[#0b5ed7] to-indigo-600 text-white font-semibold text-sm shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-70 transition-all"
+              disabled={loading || !canSave()}
+              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-[#0b5ed7] to-indigo-600 text-white font-semibold text-sm shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -447,7 +483,8 @@ const ProfileBuilder = () => {
           ) : (
             <button
               onClick={() => setCurrentStep(prev => Math.min(steps.length, prev + 1))}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-[#0b5ed7] text-white font-semibold text-sm hover:bg-blue-700 transition-all"
+              disabled={currentStep === 1 ? !canProceedStep1() : currentStep === 2 ? !canProceedStep2() : false}
+              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-[#0b5ed7] text-white font-semibold text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               Next <ChevronRight size={16} />
             </button>

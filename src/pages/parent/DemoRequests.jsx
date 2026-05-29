@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
-import { apiDemos } from '../../services/api';
-import { PlayCircle, Clock, CheckCircle2, Calendar, MapPin, Video, X, User, AlertCircle, Lock } from 'lucide-react';
+import { apiDemos, apiReviews } from '../../services/api';
+import { PlayCircle, Clock, CheckCircle2, Calendar, MapPin, Video, X, User, AlertCircle, Lock, Star } from 'lucide-react';
 
 const formatDate = (date) => {
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).format(date);
@@ -18,6 +19,8 @@ const statusConfig = {
   accepted: { label: 'Confirmed', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200', icon: <CheckCircle2 size={14} /> },
   pending: { label: 'Pending', bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', icon: <Clock size={14} /> },
   completed: { label: 'Completed', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', icon: <CheckCircle2 size={14} /> },
+  hiring_requested: { label: 'Hiring Requested', bg: 'bg-indigo-100', text: 'text-indigo-700', border: 'border-indigo-200', icon: <CheckCircle2 size={14} /> },
+  hired: { label: 'Hired', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200', icon: <CheckCircle2 size={14} /> },
   declined: { label: 'Declined', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200', icon: <X size={14} /> },
 };
 
@@ -34,7 +37,6 @@ const getJoinState = (demo) => {
     return { enabled: false, label: 'Waiting for Tutor', sublabel: 'Tutor will start the class when ready' };
   }
 
-  // Session is scheduled but not live yet
   return { 
     enabled: false, 
     label: 'Session Locked', 
@@ -42,25 +44,90 @@ const getJoinState = (demo) => {
   };
 };
 
+const ReviewModal = ({ tutorId, tutorName, parentId, parentName, onClose }) => {
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (rating === 0) return alert('Please select a rating.');
+    try {
+      setSubmitting(true);
+      await apiReviews.create({
+        tutor_id: tutorId,
+        parent_id: parentId,
+        parent_name: parentName,
+        rating,
+        review_text: reviewText
+      });
+      alert('Review submitted successfully!');
+      onClose();
+    } catch (err) {
+      alert('Failed to submit review: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+        <h3 className="text-xl font-bold text-slate-900 mb-1">Review {tutorName}</h3>
+        <p className="text-sm text-slate-500 mb-6">Your feedback helps other parents make good decisions.</p>
+
+        <div className="flex justify-center gap-2 mb-6">
+          {[1, 2, 3, 4, 5].map(star => (
+            <button
+              key={star}
+              type="button"
+              onMouseEnter={() => setHoverRating(star)}
+              onMouseLeave={() => setHoverRating(0)}
+              onClick={() => setRating(star)}
+              className="focus:outline-none transition-transform hover:scale-110"
+            >
+              <Star 
+                size={36} 
+                className={(hoverRating || rating) >= star ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} 
+              />
+            </button>
+          ))}
+        </div>
+
+        <textarea
+          placeholder="Share details of your experience with this tutor..."
+          value={reviewText}
+          onChange={(e) => setReviewText(e.target.value)}
+          rows={4}
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#0b5ed7] mb-6 resize-none"
+        />
+
+        <div className="flex gap-3">
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || rating === 0}
+            className="flex-1 bg-[#0b5ed7] text-white px-5 py-3 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-700 flex items-center justify-center disabled:opacity-50"
+          >
+            {submitting ? 'Submitting...' : 'Submit Review'}
+          </button>
+          <button onClick={onClose} className="px-5 py-3 rounded-xl text-sm font-bold border border-slate-200 text-slate-600 hover:bg-slate-50">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DemoRequests = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [filter, setFilter] = useState('all');
   const [demos, setDemos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [joiningId, setJoiningId] = useState(null); // Which demo is currently being joined
-
-  useEffect(() => {
-    if (user) fetchDemos();
-  }, [user]);
-
-  // Auto-refresh every 15 seconds so parent sees when tutor goes live
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (user) fetchDemos(true);
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [user]);
+  const [reviewingTutor, setReviewingTutor] = useState(null); // { id, name }
 
   const fetchDemos = async (isBackground = false) => {
     try {
@@ -73,6 +140,18 @@ const DemoRequests = () => {
       if (!isBackground) setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user) fetchDemos();
+  }, [user]);
+
+  // Auto-refresh every 15 seconds so parent sees when tutor goes live
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (user) fetchDemos(true);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleUpdateStatus = async (demoId, newStatus) => {
     try {
@@ -199,7 +278,7 @@ const DemoRequests = () => {
                   )}
 
                   {/* Actions */}
-                  {demo.status !== 'completed' && demo.status !== 'declined' && (
+                  {demo.status !== 'completed' && demo.status !== 'declined' && demo.status !== 'hiring_requested' && demo.status !== 'hired' && (
                     <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-100">
                       {(demo.status === 'confirmed' || demo.status === 'accepted') && (
                         <>
@@ -239,6 +318,29 @@ const DemoRequests = () => {
                       )}
                     </div>
                   )}
+
+                  {(demo.status === 'completed' || demo.status === 'hiring_requested' || demo.status === 'hired') && (
+                    <div className="flex gap-3 mt-4 pt-4 border-t border-slate-100">
+                      {demo.status === 'completed' && (
+                        <button onClick={() => handleUpdateStatus(demo.id, 'hiring_requested')} className="bg-[#0b5ed7] text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-md">
+                           Hire Tutor
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => setReviewingTutor({ id: demo.tutor_id, name: tutorName })}
+                        className="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors shadow-sm"
+                      >
+                        <Star size={16} className="text-amber-400 fill-amber-400" />
+                        Write Review
+                      </button>
+                      <button 
+                        onClick={() => navigate('/parent/messages', { state: { contactId: demo.tutor_id, contactName: tutorName } })}
+                        className="bg-white border border-slate-200 text-[#0b5ed7] px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm"
+                      >
+                        Message
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -253,6 +355,16 @@ const DemoRequests = () => {
           </div>
         )}
       </div>
+
+      {reviewingTutor && (
+        <ReviewModal
+          tutorId={reviewingTutor.id}
+          tutorName={reviewingTutor.name}
+          parentId={user.id}
+          parentName={user?.user_metadata?.name || 'Parent'}
+          onClose={() => setReviewingTutor(null)}
+        />
+      )}
     </DashboardLayout>
   );
 };

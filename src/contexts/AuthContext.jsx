@@ -123,15 +123,38 @@ export const AuthProvider = ({ children }) => {
         // Set profile to DB row if available, otherwise fallback to user_metadata
         setProfile(tutorData || currentUser.user_metadata || null);
         
-        // Complete = has name (from DB row OR from signup metadata)
+        // Complete = has essential fields
         const hasName = !!(tutorData?.name || currentUser.user_metadata?.name);
         const hasSubjects = !!(tutorData?.subjects?.length || currentUser.user_metadata?.subjects?.length);
-        setProfileComplete(hasName && hasSubjects);
+        const hasCity = !!(tutorData?.city || currentUser.user_metadata?.city);
+        const hasPhone = !!(tutorData?.phone || currentUser.user_metadata?.phone);
+        setProfileComplete(hasName && hasSubjects && hasCity && hasPhone);
       } else {
         // parent
-        const hasName = !!currentUser.user_metadata?.name;
-        setProfileComplete(hasName);
-        setProfile(currentUser.user_metadata || null);
+        const m = currentUser.user_metadata || {};
+        const hasName = !!m.name;
+        const hasCity = !!m.city;
+        const hasPhone = !!m.phone;
+        const hasChildClass = !!m.childClass;
+        setProfileComplete(hasName && hasCity && hasPhone && hasChildClass);
+        setProfile(m);
+
+        // One-time auto-fix for legacy demo requests that are missing the name tag
+        if (hasName) {
+          supabase.from('demo_requests').select('id, note').eq('parent_id', currentUser.id).then(({ data: demos }) => {
+            if (demos && demos.length > 0) {
+              demos.forEach(demo => {
+                const hasOldFormat = demo.note?.includes('[From:') && !demo.note?.includes('| For:');
+                if (!demo.note?.includes('[From:') || hasOldFormat) {
+                  const cleanNote = demo.note ? demo.note.replace(/\[From:\s*.*?\]\s*/, '') : '';
+                  const childName = m.childName || m.name || 'Student';
+                  const newNote = `[From: ${m.name} | For: ${childName}] ${cleanNote}`.trim();
+                  supabase.from('demo_requests').update({ note: newNote }).eq('id', demo.id).then();
+                }
+              });
+            }
+          }).catch(() => {});
+        }
       }
 
       // Auto-heal metadata role if it is out of sync or missing

@@ -14,10 +14,12 @@ const formatScheduledTime = (isoString) => {
 };
 
 const statusConfig = {
-  pending: { label: 'Pending Approval', bg: 'bg-amber-100', text: 'text-amber-700', icon: <Clock size={14} /> },
-  accepted: { label: 'Upcoming', bg: 'bg-blue-100', text: 'text-blue-700', icon: <Calendar size={14} /> },
-  completed: { label: 'Completed', bg: 'bg-emerald-100', text: 'text-emerald-700', icon: <CheckCircle2 size={14} /> },
-  declined: { label: 'Declined', bg: 'bg-red-100', text: 'text-red-700', icon: <X size={14} /> },
+  pending: { label: 'Pending Approval', bg: 'bg-amber-100 border border-amber-300 shadow-sm', text: 'text-amber-800', icon: <Clock size={16} /> },
+  accepted: { label: 'Upcoming', bg: 'bg-blue-100 border border-blue-300 shadow-sm', text: 'text-blue-800', icon: <Calendar size={16} /> },
+  completed: { label: 'Completed', bg: 'bg-emerald-100 border border-emerald-300 shadow-sm', text: 'text-emerald-800', icon: <CheckCircle2 size={16} /> },
+  hiring_requested: { label: 'Hire Request', bg: 'bg-indigo-100 border border-indigo-300 shadow-sm', text: 'text-indigo-800', icon: <CheckCircle2 size={16} /> },
+  hired: { label: 'Hired', bg: 'bg-emerald-100 border border-emerald-400 shadow-md', text: 'text-emerald-800', icon: <CheckCircle2 size={16} /> },
+  declined: { label: 'Declined', bg: 'bg-red-100 border border-red-300 shadow-sm', text: 'text-red-800', icon: <X size={16} /> },
 };
 
 /**
@@ -113,10 +115,6 @@ const TutorDemos = () => {
   const [acceptingId, setAcceptingId] = useState(null);
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  useEffect(() => {
-    if (user) fetchDemos();
-  }, [user]);
-
   const fetchDemos = async () => {
     try {
       setLoading(true);
@@ -135,6 +133,10 @@ const TutorDemos = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user) fetchDemos();
+  }, [user]);
 
   const handleAcceptWithSchedule = async ({ scheduledAt, meetingLink }) => {
     try {
@@ -222,7 +224,11 @@ const TutorDemos = () => {
             {filtered.map((demo) => {
               const st = statusConfig[demo.status] || statusConfig.pending;
               const req = demo.parent_requirements || {};
-              const parentName = req.student_name ? `${req.student_name}'s Parent` : 'Parent';
+              const profile = demo.parent_profiles || {};
+              const parentNameMatch = demo.note?.match(/\[From:\s*(.*?)(?:\s*\|\s*For:.*?|)\]/);
+              const noteParent = parentNameMatch ? parentNameMatch[1].trim() : null;
+              const parentName = req.student_name ? `${req.student_name}'s Parent` : (profile.name || noteParent || 'Parent');
+              const cleanNote = demo.note ? demo.note.replace(/\[From:\s*.*?\]\s*/, '') : '';
               const createdDate = new Date(demo.created_at);
               const scheduledTime = formatScheduledTime(demo.scheduled_at);
 
@@ -235,14 +241,18 @@ const TutorDemos = () => {
                       </div>
                       <div>
                         <h3 className="font-bold text-lg text-slate-900">{parentName}</h3>
-                        <p className="text-sm text-slate-500 font-medium flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                          <span className="flex items-center gap-1"><User size={14} /> {req.student_name}, Class: {req.class_level}</span>
-                          <span className="flex items-center gap-1"><BookOpen size={14} /> Subjects: {req.subjects?.join(', ')}</span>
-                        </p>
+                        {(req.student_name || req.subjects) ? (
+                          <p className="text-sm text-slate-500 font-medium flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                            {req.student_name && <span className="flex items-center gap-1"><User size={14} /> {req.student_name}, Class: {req.class_level}</span>}
+                            {req.subjects && <span className="flex items-center gap-1"><BookOpen size={14} /> Subjects: {req.subjects?.join(', ')}</span>}
+                          </p>
+                        ) : (
+                          cleanNote && <p className="text-sm text-slate-500 italic mt-1 max-w-sm">"{cleanNote}"</p>
+                        )}
                       </div>
                     </div>
 
-                    <span className={`${st.bg} ${st.text} text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 self-start md:self-center`}>
+                    <span className={`${st.bg} ${st.text} text-sm font-bold px-4 py-2 rounded-full flex items-center gap-1.5 self-start md:self-center`}>
                       {st.icon} {st.label}
                     </span>
                   </div>
@@ -348,6 +358,22 @@ const TutorDemos = () => {
                         <button onClick={() => handleUpdateStatus(demo.id, 'declined')} className="border border-red-200 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 flex items-center gap-2">
                           <X size={14} /> Decline
                         </button>
+                      </div>
+                    )}
+
+                    {demo.status === 'hiring_requested' && (
+                      <div className="flex flex-col gap-3">
+                         <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 mb-2">
+                           <p className="text-sm text-indigo-900 font-bold">The parent has requested to hire you! Approve to add to My Students.</p>
+                         </div>
+                         <div className="flex gap-3">
+                           <button onClick={() => handleUpdateStatus(demo.id, 'hired')} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-700 flex items-center gap-2">
+                             <CheckCircle2 size={16} /> Approve Student
+                           </button>
+                           <button onClick={() => handleUpdateStatus(demo.id, 'declined')} className="border border-red-200 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 flex items-center gap-2">
+                             <X size={14} /> Decline
+                           </button>
+                         </div>
                       </div>
                     )}
                   </div>

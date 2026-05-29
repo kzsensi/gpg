@@ -7,14 +7,24 @@ import {
   PlayCircle,
   LogOut,
   GraduationCap,
+  Search,
+  MessageCircle,
+  HelpCircle,
+  Settings,
+  Users,
+  CreditCard
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const menuItems = [
-  { label: 'Dashboard Home', path: '/parent/dashboard', icon: LayoutDashboard },
-  { label: 'My Profile', path: '/parent/profile', icon: User },
-  { label: 'Post Requirement', path: '/parent/post-requirement', icon: PlusCircle },
-  { label: 'Demo Requests', path: '/parent/demos', icon: PlayCircle },
+  { label: 'Dashboard', path: '/parent/dashboard', icon: LayoutDashboard },
+  { label: 'My Requirements', path: '/parent/requirements', icon: PlusCircle },
+  { label: 'Find Teachers', path: '/search', icon: Search },
+  { label: 'Teacher Matches', path: '/parent/matches', icon: Users },
+  { label: 'Upcoming Demos', path: '/parent/demos', icon: PlayCircle },
+  { label: 'Messages', path: '/parent/messages', icon: MessageCircle },
+  { label: 'Payment History', path: '/parent/payments', icon: CreditCard, disabled: true },
+  { label: 'Help & Support', path: '/help', icon: HelpCircle },
 ];
 
 const ParentSidebar = () => {
@@ -40,62 +50,51 @@ const ParentSidebar = () => {
     <aside className="flex flex-col h-full bg-white border-r border-slate-200">
       {/* Logo */}
       <div
-        className="flex items-center gap-3 px-6 py-5 cursor-pointer border-b border-slate-100"
+        className="flex items-center gap-3 px-6 py-6 cursor-pointer border-b border-slate-100"
         onClick={() => navigate('/')}
       >
-        <div className="bg-indigo-600 text-white p-2 rounded-xl shadow-md">
+        <div className="bg-[#0b5ed7] text-white p-2 rounded-lg">
           <GraduationCap size={22} />
         </div>
-        <span className="font-sans font-bold text-xl text-slate-900 tracking-tight">
+        <span className="font-bold text-xl text-slate-900 tracking-tight">
           GharPeGyan
         </span>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2">Menu</div>
         {menuItems.map((item) => {
           const active = isActive(item.path);
           const Icon = item.icon;
           return (
             <button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-medium transition-all duration-200 cursor-pointer ${
+              key={item.label}
+              onClick={() => {
+                if (!item.disabled) navigate(item.path);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                 active
-                  ? 'bg-[#0b5ed7] text-white shadow-md'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-blue-50 text-[#0b5ed7]'
+                  : item.disabled
+                  ? 'text-slate-400 cursor-not-allowed opacity-60'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer'
               }`}
             >
-              <Icon size={19} strokeWidth={active ? 2.2 : 1.8} />
+              <Icon size={18} strokeWidth={active ? 2.5 : 2} />
               <span>{item.label}</span>
-              {item.label === 'Notifications' && (
-                <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                  3
-                </span>
-              )}
             </button>
           );
         })}
       </nav>
 
       {/* User card + Logout */}
-      <div className="px-3 pb-4 mt-auto">
-        <div className="bg-slate-50 rounded-xl p-3 mb-2">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 flex-shrink-0 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
-              {initial}
-            </div>
-            <div className="flex-1 min-w-0 text-left">
-              <p className="text-sm font-semibold text-slate-900 truncate">{displayName}</p>
-              <p className="text-xs text-slate-500 truncate">{displayEmail}</p>
-            </div>
-          </div>
-        </div>
+      <div className="p-4 border-t border-slate-100 mt-auto">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
         >
-          <LogOut size={18} />
+          <LogOut size={18} strokeWidth={2} />
           <span>Logout</span>
         </button>
       </div>

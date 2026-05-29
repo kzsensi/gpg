@@ -107,10 +107,10 @@ const PostRequirement = () => {
                 Your requirement is now live. Verified tutors in {formData.city} will start applying soon. You can track applications in your dashboard.
               </p>
               <button 
-                onClick={() => navigate('/parent/dashboard')}
+                onClick={() => navigate('/parent/requirements')}
                 className="bg-[#0b5ed7] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-colors"
               >
-                Go to Dashboard
+                Go to My Requirements
               </button>
             </div>
           ) : (

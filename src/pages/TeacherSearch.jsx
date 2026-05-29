@@ -53,7 +53,7 @@ const DemoModal = ({ tutor, onClose, onSuccess }) => {
         parent_id: user.id,
         tutor_id: tutor.user_id,
         status: 'pending',
-        note: form.note,
+        note: `[From: ${user.user_metadata?.name || 'Parent'} | For: ${user.user_metadata?.childName || user.user_metadata?.name || 'Student'}] ${form.subject} — ${form.mode}. ${form.note}`.trim(),
       });
       setSuccess(true);
     } catch (err) {
