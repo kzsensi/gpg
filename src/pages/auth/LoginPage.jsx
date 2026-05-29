@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   GraduationCap,
   Mail,
-  Phone,
   Lock,
   Eye,
   EyeOff,
@@ -15,39 +15,106 @@ import {
   Star,
   CheckCircle2,
   Shield,
+  AlertCircle
 } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from || null;
+  const { signIn, signUp, authError, setAuthError } = useAuth();
+  
   const [activeTab, setActiveTab] = useState('login');
   const [role, setRole] = useState('parent');
-  const [inputMethod, setInputMethod] = useState('phone');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     password: '',
     confirmPassword: '',
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (authError) setAuthError(null); // Clear error when user types
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate('/otp-verify', {
-      state: {
-        role,
-        contact: inputMethod === 'phone' ? formData.phone : formData.email,
-      },
-    });
+    setAuthError(null);
+
+    // Basic Validation
+    if (!formData.email || !formData.password) {
+      setAuthError('Please fill in all required fields.');
+      return;
+    }
+    
+    // Email regex validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setAuthError('Please enter a valid email address.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      if (activeTab === 'signup') {
+        if (!formData.name) {
+          setAuthError('Please enter your full name.');
+          setLoading(false);
+          return;
+        }
+        if (formData.password !== formData.confirmPassword) {
+          setAuthError('Passwords do not match.');
+          setLoading(false);
+          return;
+        }
+        if (formData.password.length < 6) {
+          setAuthError('Password must be at least 6 characters long.');
+          setLoading(false);
+          return;
+        }
+        
+        // Call real Supabase Auth
+        const { data, error } = await signUp(formData.email, formData.password, role, formData.name);
+        
+        if (!error) {
+          // Signup successful. Supabase sends an email confirmation.
+          // We redirect to the OTP verification page for them to enter the code or wait for link click.
+          navigate('/otp-verify', {
+            state: {
+              role,
+              contact: formData.email, // Passing email instead of phone
+            },
+          });
+        }
+      } else {
+        // Login flow
+        const { data, error } = await signIn(formData.email, formData.password);
+        
+        if (!error && data?.user) {
+          // Login successful — give AuthContext a moment to process the session
+          // before navigating, so ProtectedRoute doesn't see loading=true
+          const actualRole = data.user.user_metadata?.role || role;
+          const destination = redirectTo || (actualRole === 'parent' ? '/parent/dashboard' : (actualRole === 'admin' ? '/admin/dashboard' : '/tutor/dashboard'));
+          
+          // Small delay lets onAuthStateChange fire and handleSession complete
+          setTimeout(() => {
+            navigate(destination, { replace: true });
+          }, 300);
+        }
+      }
+    } catch (err) {
+      setAuthError(err.message || 'An unexpected error occurred.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    navigate(role === 'parent' ? '/parent/dashboard' : '/tutor/dashboard');
-  };
+
 
   const features = [
     { icon: CheckCircle2, text: 'Verified & background-checked tutors' },
@@ -174,13 +241,16 @@ const LoginPage = () => {
 
           {/* Tab Switcher */}
           <div
-            className="flex bg-slate-100 rounded-xl p-1 mb-8"
+            className="flex bg-slate-100 rounded-xl p-1 mb-6"
             style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.06)' }}
           >
             {['login', 'signup'].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setAuthError(null);
+                }}
                 className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
                   activeTab === tab
                     ? 'bg-white text-slate-900 shadow-sm'
@@ -204,6 +274,14 @@ const LoginPage = () => {
             </p>
           </div>
 
+          {/* Error Message Display */}
+          {authError && (
+            <div className="mb-6 p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 animate-pulse">
+              <AlertCircle size={18} className="text-red-600 mt-0.5 shrink-0" />
+              <p className="text-sm font-medium text-red-800 leading-tight">{authError}</p>
+            </div>
+          )}
+
           {/* Role Selection */}
           <div className="mb-6">
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
@@ -220,7 +298,7 @@ const LoginPage = () => {
                   activeGradient: 'linear-gradient(135deg, #eff6ff, #eef2ff)',
                 },
                 {
-                  id: 'teacher',
+                  id: 'tutor',
                   label: 'Teacher / Tutor',
                   icon: BookOpen,
                   desc: 'Start teaching',
@@ -285,62 +363,25 @@ const LoginPage = () => {
               </div>
             )}
 
-            {/* Input method toggle */}
+            {/* Email Address */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium text-slate-700">
-                  {inputMethod === 'phone' ? 'Phone Number' : 'Email Address'}
-                </label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setInputMethod(inputMethod === 'phone' ? 'email' : 'phone')
-                  }
-                  className="text-xs text-[#0b5ed7] font-medium hover:underline flex items-center gap-1"
-                >
-                  {inputMethod === 'phone' ? (
-                    <>
-                      <Mail size={12} /> Use Email
-                    </>
-                  ) : (
-                    <>
-                      <Phone size={12} /> Use Phone
-                    </>
-                  )}
-                </button>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail
+                  size={18}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="you@example.com"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm placeholder:text-slate-400 focus:border-[#0b5ed7] focus:ring-2 focus:ring-blue-100 transition-all outline-none"
+                />
               </div>
-
-              {inputMethod === 'phone' ? (
-                <div className="flex gap-2">
-                  <div className="flex items-center px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-sm font-medium">
-                    🇮🇳 +91
-                  </div>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="98765 43210"
-                    maxLength={10}
-                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm placeholder:text-slate-400 focus:border-[#0b5ed7] focus:ring-2 focus:ring-blue-100 transition-all outline-none"
-                  />
-                </div>
-              ) : (
-                <div className="relative">
-                  <Mail
-                    size={18}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="you@example.com"
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm placeholder:text-slate-400 focus:border-[#0b5ed7] focus:ring-2 focus:ring-blue-100 transition-all outline-none"
-                  />
-                </div>
-              )}
             </div>
 
             {/* Password */}
@@ -349,14 +390,7 @@ const LoginPage = () => {
                 <label className="block text-sm font-medium text-slate-700">
                   Password
                 </label>
-                {activeTab === 'login' && (
-                  <Link
-                    to="/forgot-password"
-                    className="text-xs text-[#0b5ed7] font-medium hover:underline"
-                  >
-                    Forgot Password?
-                  </Link>
-                )}
+
               </div>
               <div className="relative">
                 <Lock
@@ -407,51 +441,30 @@ const LoginPage = () => {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group"
+              disabled={loading}
+              className={`w-full py-3.5 rounded-xl text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 group ${
+                loading ? 'opacity-70 cursor-wait' : 'shadow-lg hover:shadow-xl'
+              }`}
               style={{
                 background: 'linear-gradient(135deg, #0b5ed7, #4f46e5)',
               }}
             >
-              {activeTab === 'login' ? 'Sign In' : 'Create Account'}
-              <ArrowRight
-                size={16}
-                className="transition-transform group-hover:translate-x-1"
-              />
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Please wait...
+                </>
+              ) : (
+                <>
+                  {activeTab === 'login' ? 'Sign In' : 'Create Account'}
+                  <ArrowRight
+                    size={16}
+                    className="transition-transform group-hover:translate-x-1"
+                  />
+                </>
+              )}
             </button>
           </form>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-slate-200" />
-            <span className="text-xs text-slate-400 font-medium">or continue with</span>
-            <div className="flex-1 h-px bg-slate-200" />
-          </div>
-
-          {/* Google Login */}
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium text-sm hover:bg-slate-50 hover:shadow-sm transition-all duration-300"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-                fill="#4285F4"
-              />
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#34A853"
-              />
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                fill="#FBBC05"
-              />
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                fill="#EA4335"
-              />
-            </svg>
-            Login with Google
-          </button>
 
           {/* Terms */}
           {activeTab === 'signup' && (
@@ -461,7 +474,7 @@ const LoginPage = () => {
                 Terms of Service
               </Link>{' '}
               &{' '}
-              <Link to="/terms" className="text-[#0b5ed7] hover:underline font-medium">
+              <Link to="/privacy" className="text-[#0b5ed7] hover:underline font-medium">
                 Privacy Policy
               </Link>
             </p>
@@ -473,7 +486,10 @@ const LoginPage = () => {
               <>
                 Don&apos;t have an account?{' '}
                 <button
-                  onClick={() => setActiveTab('signup')}
+                  onClick={() => {
+                    setActiveTab('signup');
+                    setAuthError(null);
+                  }}
                   className="text-[#0b5ed7] font-semibold hover:underline"
                 >
                   Sign Up
@@ -483,7 +499,10 @@ const LoginPage = () => {
               <>
                 Already have an account?{' '}
                 <button
-                  onClick={() => setActiveTab('login')}
+                  onClick={() => {
+                    setActiveTab('login');
+                    setAuthError(null);
+                  }}
                   className="text-[#0b5ed7] font-semibold hover:underline"
                 >
                   Login

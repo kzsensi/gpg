@@ -8,8 +8,10 @@ import {
   LogOut,
   GraduationCap,
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const menuItems = [
+  { label: 'Dashboard Home', path: '/parent/dashboard', icon: LayoutDashboard },
   { label: 'My Profile', path: '/parent/profile', icon: User },
   { label: 'Post Requirement', path: '/parent/post-requirement', icon: PlusCircle },
   { label: 'Demo Requests', path: '/parent/demos', icon: PlayCircle },
@@ -18,9 +20,19 @@ const menuItems = [
 const ParentSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const isActive = (path) =>
     location.pathname === path || location.pathname.startsWith(path + '/');
+
+  const handleLogout = async () => {
+    await signOut();
+    window.location.href = '/';
+  };
+
+  const displayName = user?.user_metadata?.name || 'New Parent';
+  const displayEmail = user?.email || 'No email';
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <aside className="flex flex-col h-full bg-white border-r border-slate-200">
@@ -68,17 +80,17 @@ const ParentSidebar = () => {
       <div className="px-3 pb-4 mt-auto">
         <div className="bg-slate-50 rounded-xl p-3 mb-2">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
-              P
+            <div className="w-9 h-9 flex-shrink-0 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
+              {initial}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">Pooja Sharma</p>
-              <p className="text-xs text-slate-500 truncate">pooja.s@gmail.com</p>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-semibold text-slate-900 truncate">{displayName}</p>
+              <p className="text-xs text-slate-500 truncate">{displayEmail}</p>
             </div>
           </div>
         </div>
         <button
-          onClick={() => navigate('/')}
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
         >
           <LogOut size={18} />

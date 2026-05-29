@@ -1,228 +1,247 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useAuth } from '../../contexts/AuthContext';
+import { apiTutors } from '../../services/api';
+import { supabase } from '../../lib/supabase';
 import {
-  User,
-  BookOpen,
-  GraduationCap,
-  Briefcase,
-  Lightbulb,
-  Save,
-  Eye,
-  Upload,
-  Plus,
-  X,
-  Check,
-  ChevronRight,
-  ChevronLeft,
-  Camera,
+  User, BookOpen, Briefcase, Save, Check, ChevronRight, ChevronLeft, AlertCircle, GraduationCap
 } from 'lucide-react';
 
 const steps = [
   { id: 1, label: 'Personal Info', icon: User },
   { id: 2, label: 'Subjects & Boards', icon: BookOpen },
-  { id: 3, label: 'Education', icon: GraduationCap },
-  { id: 4, label: 'Experience', icon: Briefcase },
-  { id: 5, label: 'Methodology', icon: Lightbulb },
+  { id: 3, label: 'Experience', icon: Briefcase },
 ];
 
-const subjectOptions = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Hindi', 'Computer Science', 'Economics', 'Accountancy', 'History', 'Geography', 'Political Science'];
+const subjectOptions = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Hindi', 'Computer Science', 'Economics', 'Accountancy', 'History', 'Geography', 'Political Science', 'Science', 'Social Studies', 'Sanskrit', 'French'];
 const boardOptions = ['CBSE', 'ICSE', 'State Board', 'IB', 'IGCSE', 'Cambridge'];
+const classOptions = ['Nursery', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12', 'Graduate', 'Competitive Exams'];
+const cityOptions = ['New Delhi', 'Gurgaon', 'Noida', 'Mumbai', 'Bangalore', 'Chennai', 'Hyderabad', 'Pune', 'Kolkata', 'Jaipur', 'Chandigarh', 'Lucknow', 'Ahmedabad', 'Indore', 'Bhopal'];
+const modeOptions = ['Home Tuition', 'Online', 'Both'];
 
 const ProfileBuilder = () => {
   const navigate = useNavigate();
+  const { user, profile, refreshProfile } = useAuth();
+  
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedSubjects, setSelectedSubjects] = useState(['Mathematics', 'Physics']);
-  const [selectedBoards, setSelectedBoards] = useState(['CBSE']);
-  const [education, setEducation] = useState([
-    { id: 1, degree: 'B.Sc. Mathematics', university: 'Delhi University', year: '2018' },
-  ]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const toggleSubject = (subject) => {
-    setSelectedSubjects((prev) =>
-      prev.includes(subject)
-        ? prev.filter((s) => s !== subject)
-        : [...prev, subject]
-    );
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    city: '',
+    bio: '',
+    education: '',
+    mode: 'Both',
+    experience_years: 2,
+    hourly_rate: 500
+  });
+
+  const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [selectedBoards, setSelectedBoards] = useState([]);
+  const [selectedClasses, setSelectedClasses] = useState([]);
+
+  // Pre-populate from existing profile
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        name: profile.name || user?.user_metadata?.name || '',
+        phone: profile.phone || '',
+        city: profile.city || '',
+        bio: profile.bio || '',
+        education: profile.education || '',
+        mode: profile.mode || 'Both',
+        experience_years: profile.experience_years || 2,
+        hourly_rate: profile.hourly_rate || 500
+      });
+      if (profile.subjects?.length) setSelectedSubjects(profile.subjects);
+      if (profile.boards?.length) setSelectedBoards(profile.boards);
+      if (profile.classes?.length) setSelectedClasses(profile.classes);
+    } else if (user) {
+      setFormData(prev => ({ ...prev, name: user.user_metadata?.name || '' }));
+    }
+  }, [profile, user]);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const toggleBoard = (board) => {
-    setSelectedBoards((prev) =>
-      prev.includes(board)
-        ? prev.filter((b) => b !== board)
-        : [...prev, board]
-    );
+  const toggleItem = (list, setList, item) => {
+    setList(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
 
-  const addEducation = () => {
-    setEducation((prev) => [
-      ...prev,
-      { id: Date.now(), degree: '', university: '', year: '' },
-    ]);
+  const handleSave = async () => {
+    setError(null);
+    if (!formData.name.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
+    if (selectedSubjects.length === 0) {
+      setError('Please select at least one subject you teach.');
+      setCurrentStep(2);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Update user metadata first (this matches Parent Profile flow, works immediately, no RLS block)
+      const { error: metaError } = await supabase.auth.updateUser({
+        data: {
+          name: formData.name.trim(),
+          phone: formData.phone,
+          city: formData.city,
+          role: 'tutor',
+          subjects: selectedSubjects,
+        }
+      });
+
+      if (metaError) throw new Error(`Metadata update failed: ${metaError.message}`);
+
+      // 2. Try to save to tutor_profiles table, but with a timeout so it never hangs indefinitely
+      const upsertPromise = apiTutors.upsertProfile(user.id, {
+        email: user.email,
+        name: formData.name.trim(),
+        phone: formData.phone,
+        city: formData.city,
+        bio: formData.bio,
+        education: formData.education,
+        mode: formData.mode,
+        experience_years: parseInt(formData.experience_years) || 0,
+        hourly_rate: parseInt(formData.hourly_rate) || 0,
+        subjects: selectedSubjects,
+        boards: selectedBoards,
+        classes: selectedClasses,
+        is_visible: true,
+      });
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database profile table query timed out. Please check if Supabase RLS policies are set up correctly.')), 3500)
+      );
+
+      await Promise.race([upsertPromise, timeoutPromise]);
+      
+      await refreshProfile();
+      navigate('/tutor/dashboard');
+    } catch (err) {
+      setError(`Error in save: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeEducation = (id) => {
-    setEducation((prev) => prev.filter((e) => e.id !== id));
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #e2e8f0',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontFamily: 'inherit',
-    color: '#0f172a',
-    background: '#fff',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-  };
-
-  const labelStyle = {
-    display: 'block',
-    fontSize: '13px',
-    fontWeight: 600,
-    color: '#374151',
-    marginBottom: '6px',
-  };
+  const inputCls = "w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 focus:border-[#0b5ed7] focus:ring-2 focus:ring-blue-50 outline-none transition-all";
+  const labelCls = "block text-sm font-semibold text-slate-700 mb-1.5";
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Photo upload */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <div
-                style={{
-                  width: '100px',
-                  height: '100px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
-                  border: '3px dashed #93c5fd',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  flexShrink: 0,
-                }}
-              >
-                <Camera size={28} style={{ color: '#0b5ed7' }} />
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '2px',
-                    right: '2px',
-                    background: '#0b5ed7',
-                    color: '#fff',
-                    borderRadius: '50%',
-                    width: '24px',
-                    height: '24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className={labelCls}>Full Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="e.g., Rahul Mehta"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Phone Number</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>City</label>
+                <select
+                  value={formData.city}
+                  onChange={(e) => handleInputChange('city', e.target.value)}
+                  className={inputCls + " cursor-pointer"}
                 >
-                  <Plus size={14} />
+                  <option value="">Select City</option>
+                  {cityOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className={labelCls}>Education / Qualification</label>
+                <input
+                  type="text"
+                  value={formData.education}
+                  onChange={(e) => handleInputChange('education', e.target.value)}
+                  placeholder="e.g., B.Tech IIT Delhi, M.Sc Mathematics"
+                  className={inputCls}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className={labelCls}>Teaching Mode</label>
+                <div className="flex gap-3">
+                  {modeOptions.map(m => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => handleInputChange('mode', m)}
+                      className={`flex-1 py-3 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer ${
+                        formData.mode === m
+                          ? 'border-[#0b5ed7] bg-blue-50 text-[#0b5ed7]'
+                          : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div>
-                <p style={{ fontWeight: 600, fontSize: '15px', color: '#0f172a' }}>Profile Photo</p>
-                <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                  Upload a professional photo. JPG or PNG, max 5MB
-                </p>
-                <button
-                  style={{
-                    marginTop: '8px',
-                    padding: '8px 16px',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '10px',
-                    background: '#fff',
-                    color: '#0b5ed7',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <Upload size={14} /> Upload Photo
-                </button>
+              <div className="md:col-span-2">
+                <label className={labelCls}>About You (Bio)</label>
+                <textarea
+                  rows={4}
+                  value={formData.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  placeholder="Passionate Mathematics and Physics tutor with 5+ years of experience. I specialise in making complex concepts simple..."
+                  className={inputCls + " resize-none"}
+                />
               </div>
-            </div>
-
-            {/* Name fields */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={labelStyle}>First Name</label>
-                <input type="text" placeholder="Rahul" defaultValue="Rahul" style={inputStyle} />
-              </div>
-              <div>
-                <label style={labelStyle}>Last Name</label>
-                <input type="text" placeholder="Mehta" defaultValue="Mehta" style={inputStyle} />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={labelStyle}>Phone Number</label>
-                <input type="tel" placeholder="+91 98765 43210" defaultValue="+91 98765 43210" style={inputStyle} />
-              </div>
-              <div>
-                <label style={labelStyle}>City</label>
-                <input type="text" placeholder="Bangalore" defaultValue="Bangalore" style={inputStyle} />
-              </div>
-            </div>
-
-            <div>
-              <label style={labelStyle}>Bio</label>
-              <textarea
-                rows={4}
-                placeholder="Tell parents about yourself, your teaching style, and what makes you unique..."
-                defaultValue="Passionate Mathematics and Physics tutor with 5+ years of experience. I believe in building strong fundamentals and making learning fun and engaging for students."
-                style={{ ...inputStyle, resize: 'vertical', minHeight: '100px' }}
-              />
-              <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>
-                Tip: A good bio helps parents understand your teaching philosophy
-              </p>
             </div>
           </div>
         );
 
       case 2:
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          <div className="space-y-8">
+            {/* Subjects */}
             <div>
-              <label style={{ ...labelStyle, fontSize: '15px', marginBottom: '14px' }}>
-                Select Subjects You Teach
+              <label className="block text-sm font-semibold text-slate-700 mb-3">
+                Subjects You Teach *
+                {selectedSubjects.length > 0 && (
+                  <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                    {selectedSubjects.length} selected
+                  </span>
+                )}
               </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <div className="flex flex-wrap gap-2.5">
                 {subjectOptions.map((subject) => {
-                  const selected = selectedSubjects.includes(subject);
+                  const sel = selectedSubjects.includes(subject);
                   return (
                     <button
                       key={subject}
-                      onClick={() => toggleSubject(subject)}
-                      style={{
-                        padding: '10px 18px',
-                        borderRadius: '999px',
-                        border: `1.5px solid ${selected ? '#0b5ed7' : '#e2e8f0'}`,
-                        background: selected ? '#eff6ff' : '#fff',
-                        color: selected ? '#0b5ed7' : '#475569',
-                        fontWeight: selected ? 600 : 500,
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
+                      type="button"
+                      onClick={() => toggleItem(selectedSubjects, setSelectedSubjects, subject)}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium cursor-pointer transition-all ${
+                        sel
+                          ? 'border-[#0b5ed7] bg-blue-50 text-[#0b5ed7]'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      }`}
                     >
-                      {selected && <Check size={14} />}
+                      {sel && <Check size={13} />}
                       {subject}
                     </button>
                   );
@@ -230,34 +249,24 @@ const ProfileBuilder = () => {
               </div>
             </div>
 
+            {/* Boards */}
             <div>
-              <label style={{ ...labelStyle, fontSize: '15px', marginBottom: '14px' }}>
-                Boards / Curricula
-              </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <label className="block text-sm font-semibold text-slate-700 mb-3">Boards You Teach</label>
+              <div className="flex flex-wrap gap-2.5">
                 {boardOptions.map((board) => {
-                  const selected = selectedBoards.includes(board);
+                  const sel = selectedBoards.includes(board);
                   return (
                     <button
                       key={board}
-                      onClick={() => toggleBoard(board)}
-                      style={{
-                        padding: '10px 18px',
-                        borderRadius: '999px',
-                        border: `1.5px solid ${selected ? '#4f46e5' : '#e2e8f0'}`,
-                        background: selected ? '#eef2ff' : '#fff',
-                        color: selected ? '#4f46e5' : '#475569',
-                        fontWeight: selected ? 600 : 500,
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
+                      type="button"
+                      onClick={() => toggleItem(selectedBoards, setSelectedBoards, board)}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium cursor-pointer transition-all ${
+                        sel
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      }`}
                     >
-                      {selected && <Check size={14} />}
+                      {sel && <Check size={13} />}
                       {board}
                     </button>
                   );
@@ -265,25 +274,35 @@ const ProfileBuilder = () => {
               </div>
             </div>
 
+            {/* Classes */}
             <div>
-              <label style={labelStyle}>Classes You Teach (e.g., 6-12)</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ ...labelStyle, fontSize: '12px', color: '#94a3b8' }}>From</label>
-                  <select defaultValue="6" style={inputStyle}>
-                    {[...Array(12)].map((_, i) => (
-                      <option key={i + 1} value={i + 1}>Class {i + 1}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ ...labelStyle, fontSize: '12px', color: '#94a3b8' }}>To</label>
-                  <select defaultValue="12" style={inputStyle}>
-                    {[...Array(12)].map((_, i) => (
-                      <option key={i + 1} value={i + 1}>Class {i + 1}</option>
-                    ))}
-                  </select>
-                </div>
+              <label className="block text-sm font-semibold text-slate-700 mb-3">
+                Classes You Teach
+                {selectedClasses.length > 0 && (
+                  <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                    {selectedClasses.length} selected
+                  </span>
+                )}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {classOptions.map((cls) => {
+                  const sel = selectedClasses.includes(cls);
+                  return (
+                    <button
+                      key={cls}
+                      type="button"
+                      onClick={() => toggleItem(selectedClasses, setSelectedClasses, cls)}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                        sel
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                      }`}
+                    >
+                      {sel && <Check size={11} />}
+                      {cls}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -291,193 +310,59 @@ const ProfileBuilder = () => {
 
       case 3:
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <p style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a' }}>
-                Education Timeline
-              </p>
-              <button
-                onClick={addEducation}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 16px',
-                  background: '#eff6ff',
-                  color: '#0b5ed7',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '10px',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                <Plus size={14} /> Add Degree
-              </button>
-            </div>
-
-            {education.map((edu, index) => (
-              <div
-                key={edu.id}
-                style={{
-                  background: '#f8fafc',
-                  borderRadius: '14px',
-                  padding: '20px',
-                  border: '1px solid #e2e8f0',
-                  position: 'relative',
-                }}
-              >
-                {education.length > 1 && (
-                  <button
-                    onClick={() => removeEducation(edu.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '12px',
-                      right: '12px',
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: '#fee2e2',
-                      color: '#ef4444',
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                  <div style={{ background: '#dbeafe', color: '#0b5ed7', padding: '6px', borderRadius: '8px' }}>
-                    <GraduationCap size={16} />
-                  </div>
-                  <span style={{ fontWeight: 600, fontSize: '14px', color: '#475569' }}>
-                    Qualification {index + 1}
-                  </span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={labelStyle}>Degree / Course</label>
-                    <input type="text" defaultValue={edu.degree} placeholder="e.g., B.Sc. Mathematics" style={inputStyle} />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>University / Institution</label>
-                    <input type="text" defaultValue={edu.university} placeholder="e.g., Delhi University" style={inputStyle} />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Year of Completion</label>
-                    <input type="text" defaultValue={edu.year} placeholder="e.g., 2018" style={inputStyle} />
-                  </div>
-                </div>
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className={labelCls}>Teaching Experience (Years)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={formData.experience_years}
+                  onChange={(e) => handleInputChange('experience_years', e.target.value)}
+                  className={inputCls}
+                />
+                <p className="text-xs text-slate-400 mt-1.5">Displayed on your profile as "X years experience"</p>
               </div>
-            ))}
-          </div>
-        );
-
-      case 4:
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div>
-              <label style={labelStyle}>Total Teaching Experience</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <select defaultValue="5" style={inputStyle}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, '10+', '15+', '20+'].map((y) => (
-                    <option key={y} value={y}>{y} {typeof y === 'number' ? (y === 1 ? 'year' : 'years') : 'years'}</option>
-                  ))}
-                </select>
-                <select defaultValue="both" style={inputStyle}>
-                  <option value="online">Online Only</option>
-                  <option value="offline">Offline Only</option>
-                  <option value="both">Both Online & Offline</option>
-                </select>
+              <div>
+                <label className={labelCls}>Hourly Rate (₹)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={formData.hourly_rate}
+                    onChange={(e) => handleInputChange('hourly_rate', e.target.value)}
+                    className={inputCls + " pl-7"}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-1.5">Shown as "₹{formData.hourly_rate}/hr" on your public profile</p>
               </div>
             </div>
 
-            <div>
-              <label style={labelStyle}>Current / Previous Organizations</label>
-              <input
-                type="text"
-                defaultValue="Freelance Home Tutor, Vedantu (part-time)"
-                placeholder="e.g., ABC Coaching, XYZ School"
-                style={inputStyle}
-              />
-            </div>
-
-            <div>
-              <label style={labelStyle}>Key Achievements</label>
-              <textarea
-                rows={4}
-                defaultValue="• Helped 50+ students score 90%+ in board exams&#10;• 3 students cracked IIT-JEE in 2023&#10;• Rated 4.9/5 by parents on GharPeGyan"
-                placeholder="List your key achievements..."
-                style={{ ...inputStyle, resize: 'vertical', minHeight: '100px' }}
-              />
-            </div>
-
-            <div>
-              <label style={labelStyle}>Students Taught (approximate)</label>
-              <input type="text" defaultValue="200+" placeholder="e.g., 150+" style={inputStyle} />
-            </div>
-          </div>
-        );
-
-      case 5:
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div>
-              <label style={labelStyle}>Teaching Methodology</label>
-              <textarea
-                rows={5}
-                defaultValue="I follow a structured approach combining conceptual clarity with problem-solving practice. Each session includes a quick revision of previous topics, followed by new concepts explained with real-world examples. I assign weekly practice sheets and conduct monthly tests to track progress."
-                placeholder="Describe your teaching approach in detail..."
-                style={{ ...inputStyle, resize: 'vertical', minHeight: '120px' }}
-              />
-              <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>
-                Parents love tutors who can clearly explain their methodology
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-sm font-semibold text-amber-800 mb-1">Profile Visibility</p>
+              <p className="text-xs text-amber-700">
+                Your profile will be <strong>publicly visible</strong> in the tutor search as soon as you save. 
+                An admin may verify it to show a ✓ badge.
               </p>
             </div>
 
-            <div>
-              <label style={labelStyle}>Specialization / USP</label>
-              <textarea
-                rows={3}
-                defaultValue="Specializing in competitive exam preparation (IIT-JEE, NEET). I create personalized study plans based on each student's strengths and weaknesses."
-                placeholder="What makes you stand out?"
-                style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
-              />
-            </div>
-
-            <div>
-              <label style={labelStyle}>Materials Provided</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '4px' }}>
-                {['Study Notes', 'Practice Sheets', 'Video Recordings', 'Doubt Clearing Sessions', 'Progress Reports', 'Mock Tests'].map((item) => (
-                  <label
-                    key={item}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '10px 16px',
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      color: '#475569',
-                      fontWeight: 500,
-                    }}
-                  >
-                    <input type="checkbox" defaultChecked={['Study Notes', 'Practice Sheets', 'Progress Reports'].includes(item)} />
-                    {item}
-                  </label>
-                ))}
+            {/* Summary */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+              <p className="text-sm font-semibold text-slate-700 mb-3">Profile Summary</p>
+              <div className="text-sm text-slate-600 space-y-1.5">
+                <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Name:</span>{formData.name || '—'}</div>
+                <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">City:</span>{formData.city || '—'}</div>
+                <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Mode:</span>{formData.mode || '—'}</div>
+                <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Education:</span>{formData.education || '—'}</div>
+                <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Subjects:</span>{selectedSubjects.length > 0 ? selectedSubjects.join(', ') : '—'}</div>
+                <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Boards:</span>{selectedBoards.length > 0 ? selectedBoards.join(', ') : '—'}</div>
               </div>
             </div>
           </div>
         );
-
       default:
         return null;
     }
@@ -485,25 +370,21 @@ const ProfileBuilder = () => {
 
   return (
     <DashboardLayout type="tutor">
-      <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
-        <div style={{ marginBottom: '28px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 700, color: '#0f172a' }}>Profile Builder</h1>
-          <p style={{ fontSize: '14px', color: '#64748b', marginTop: '4px' }}>
-            Build a compelling profile that attracts parents and students
-          </p>
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900">Profile Builder</h1>
+          <p className="text-sm text-slate-500 mt-1">Build a compelling profile that attracts parents and students</p>
         </div>
 
-        {/* Step indicator */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            marginBottom: '32px',
-            overflowX: 'auto',
-            paddingBottom: '4px',
-          }}
-        >
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+            <AlertCircle size={20} className="text-red-600 shrink-0" />
+            <p className="text-sm font-medium text-red-800">{error}</p>
+          </div>
+        )}
+
+        {/* Step indicators */}
+        <div className="flex items-center gap-1 mb-8 overflow-x-auto pb-1">
           {steps.map((step, idx) => {
             const Icon = step.icon;
             const active = currentStep === step.id;
@@ -512,151 +393,65 @@ const ProfileBuilder = () => {
               <React.Fragment key={step.id}>
                 <button
                   onClick={() => setCurrentStep(step.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    background: active ? '#0b5ed7' : completed ? '#eff6ff' : '#f8fafc',
-                    color: active ? '#fff' : completed ? '#0b5ed7' : '#94a3b8',
-                    transition: 'all 0.2s',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+                    active
+                      ? 'bg-[#0b5ed7] text-white border-[#0b5ed7] shadow-md'
+                      : completed
+                      ? 'bg-blue-50 text-[#0b5ed7] border-blue-200'
+                      : 'bg-white text-slate-400 border-slate-200'
+                  }`}
                 >
-                  {completed ? <Check size={16} /> : <Icon size={16} />}
+                  {completed ? <Check size={15} /> : <Icon size={15} />}
                   {step.label}
                 </button>
                 {idx < steps.length - 1 && (
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '2px',
-                      background: completed ? '#0b5ed7' : '#e2e8f0',
-                      borderRadius: '999px',
-                      flexShrink: 0,
-                    }}
-                  />
+                  <div className={`w-8 h-0.5 rounded-full flex-shrink-0 ${completed ? 'bg-[#0b5ed7]' : 'bg-slate-200'}`} />
                 )}
               </React.Fragment>
             );
           })}
         </div>
 
-        {/* Step content card */}
-        <div
-          style={{
-            background: '#fff',
-            borderRadius: '20px',
-            padding: '32px',
-            border: '1px solid #e2e8f0',
-            marginBottom: '24px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-            {React.createElement(steps[currentStep - 1].icon, { size: 20, style: { color: '#0b5ed7' } })}
-            <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
-              {steps[currentStep - 1].label}
-            </h2>
-            <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: 'auto' }}>
-              Step {currentStep} of {steps.length}
-            </span>
+        {/* Step content */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 mb-6 shadow-sm">
+          <div className="flex items-center gap-2.5 mb-6">
+            {React.createElement(steps[currentStep - 1].icon, { size: 20, className: 'text-[#0b5ed7]' })}
+            <h2 className="text-lg font-bold text-slate-900">{steps[currentStep - 1].label}</h2>
           </div>
           {renderStep()}
         </div>
 
-        {/* Navigation buttons */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Navigation */}
+        <div className="flex justify-between items-center">
           <button
-            onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
-            disabled={currentStep === 1}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '12px 24px',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              background: '#fff',
-              color: currentStep === 1 ? '#cbd5e1' : '#475569',
-              fontWeight: 600,
-              fontSize: '14px',
-              cursor: currentStep === 1 ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit',
-            }}
+            onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+            disabled={currentStep === 1 || loading}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             <ChevronLeft size={16} /> Previous
           </button>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            {currentStep === steps.length ? (
-              <>
-                <button
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 24px',
-                    borderRadius: '12px',
-                    border: '1px solid #e2e8f0',
-                    background: '#fff',
-                    color: '#475569',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  <Eye size={16} /> Preview Profile
-                </button>
-                <button
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 28px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #0b5ed7, #4f46e5)',
-                    color: '#fff',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    boxShadow: '0 4px 14px rgba(11,94,215,0.3)',
-                  }}
-                >
-                  <Save size={16} /> Save Profile
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setCurrentStep((prev) => Math.min(steps.length, prev + 1))}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '12px 28px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: '#0b5ed7',
-                  color: '#fff',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                Next <ChevronRight size={16} />
-              </button>
-            )}
-          </div>
+          {currentStep === steps.length ? (
+            <button
+              onClick={handleSave}
+              disabled={loading}
+              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-[#0b5ed7] to-indigo-600 text-white font-semibold text-sm shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-70 transition-all"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Save size={16} />
+              )}
+              {loading ? 'Saving...' : 'Save & Publish Profile'}
+            </button>
+          ) : (
+            <button
+              onClick={() => setCurrentStep(prev => Math.min(steps.length, prev + 1))}
+              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-[#0b5ed7] text-white font-semibold text-sm hover:bg-blue-700 transition-all"
+            >
+              Next <ChevronRight size={16} />
+            </button>
+          )}
         </div>
       </div>
     </DashboardLayout>

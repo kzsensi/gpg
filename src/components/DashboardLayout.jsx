@@ -1,14 +1,33 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Menu, X, GraduationCap, Search } from 'lucide-react';
+import { Menu, X, GraduationCap } from 'lucide-react';
 import ParentSidebar from './ParentSidebar';
 import TutorSidebar from './TutorSidebar';
+import AdminSidebar from './AdminSidebar';
+import { useAuth } from '../contexts/AuthContext';
 
 const DashboardLayout = ({ children, type = 'parent' }) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, profile } = useAuth();
 
-  const Sidebar = type === 'parent' ? ParentSidebar : TutorSidebar;
+  const Sidebar = type === 'parent' ? ParentSidebar : (type === 'admin' ? AdminSidebar : TutorSidebar);
+
+  // Get the display name based on role
+  let displayName = 'User';
+  if (type === 'parent') {
+    // Parents store their name in user_metadata
+    displayName = user?.user_metadata?.name || 'New Parent';
+  } else if (type === 'admin') {
+    displayName = user?.user_metadata?.name || 'Administrator';
+  } else {
+    // Tutors store their name in the tutor_profiles table (which AuthContext loads into 'profile')
+    displayName = profile?.name || user?.user_metadata?.name || 'New Tutor';
+  }
+
+  const getInitial = (name) => {
+    return name ? name.charAt(0).toUpperCase() : (type === 'parent' ? 'P' : (type === 'admin' ? 'A' : 'T'));
+  };
 
   return (
     <div className="flex h-screen bg-[#f8f9fb] overflow-hidden">
@@ -61,41 +80,25 @@ const DashboardLayout = ({ children, type = 'parent' }) => {
               </div>
               <span className="font-bold text-lg text-slate-900">GharPeGyan</span>
             </div>
-
-            {/* Search bar (desktop) */}
-            <div className="hidden md:flex items-center bg-slate-50 rounded-xl px-4 py-2 w-80 border border-slate-200 focus-within:border-[#0b5ed7] focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-              <Search size={16} className="text-slate-400 mr-2 flex-shrink-0" />
-              <input
-                type="text"
-                placeholder="Search teachers, requirements..."
-                className="bg-transparent outline-none text-sm text-slate-700 w-full placeholder:text-slate-400"
-              />
-            </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Notification Bell */}
-            <button
-              onClick={() => navigate(type === 'parent' ? '/parent/notifications' : '/tutor/notifications')}
-              className="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
-            >
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white notification-badge" />
-            </button>
-
             {/* User Avatar */}
             <button
-              onClick={() => navigate(type === 'parent' ? '/parent/profile' : '/tutor/profile')}
-              className="flex items-center gap-2.5 pl-3 pr-1 py-1 rounded-full hover:bg-slate-50 transition-colors"
+              onClick={() => {
+                if (type === 'admin') navigate('/admin/dashboard');
+                else navigate(type === 'parent' ? '/parent/profile' : '/tutor/profile');
+              }}
+              className="flex items-center gap-2.5 pl-3 pr-1 py-1 rounded-full hover:bg-slate-50 transition-colors text-left"
             >
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-semibold text-slate-800 leading-tight">
-                  {type === 'parent' ? 'Pooja S.' : 'Tutor'}
+                <p className="text-sm font-semibold text-slate-800 leading-tight truncate max-w-[120px]">
+                  {displayName}
                 </p>
                 <p className="text-[11px] text-slate-400 leading-tight capitalize">{type}</p>
               </div>
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white font-semibold text-sm shadow-md">
-                {type === 'parent' ? 'P' : 'T'}
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white font-semibold text-sm shadow-md flex-shrink-0">
+                {getInitial(displayName)}
               </div>
             </button>
           </div>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import TopNavigation from '../components/TopNavigation';
 import {
     Search, BookOpen, Star, ShieldCheck, MapPin,
     ChevronRight, Calculator, FlaskConical, Atom, Languages,
@@ -69,7 +71,16 @@ const ReviewCard = ({ title, content, author, lessons, subject, img, bg, border,
 );
 
 const HomePage = () => {
+    const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
+
+    const authNavigate = (path) => {
+        if (isAuthenticated) {
+            navigate(path);
+        } else {
+            navigate('/login', { state: { from: path } });
+        }
+    };
     const [activeFaq, setActiveFaq] = useState(1);
     const faqScrollRef = useRef(null);
 
@@ -99,38 +110,8 @@ const HomePage = () => {
     return (
         <div className="min-h-screen font-sans bg-[#FCFBFA] text-slate-800 overflow-x-hidden">
 
-            {/* HEADER */}
-            <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
-                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-20">
-                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-                            <div className="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md">
-                                <GraduationCap size={24} />
-                            </div>
-                            <span className="font-sans font-bold text-2xl text-slate-900 tracking-tight">
-                                GharPeGyan
-                            </span>
-                        </div>
-
-                        <nav className="hidden lg:flex items-center gap-8 font-medium text-slate-700 text-[15px]">
-                            <a href="#" onClick={(e) => { e.preventDefault(); navigate('/') }} className="text-[#0b5ed7] font-semibold border-b-2 border-[#0b5ed7] pb-1">Home</a>
-                            <a href="#" onClick={(e) => { e.preventDefault(); navigate('/search') }} className="hover:text-[#0b5ed7] transition-colors">Find Teachers</a>
-                        </nav>
-
-                        <div className="flex items-center gap-3 sm:gap-4">
-                            <a href="#" onClick={(e) => { e.preventDefault(); navigate('/login') }} className="hidden lg:block text-slate-600 font-medium text-[15px] hover:text-[#0b5ed7] transition-colors">
-                                Join as Teacher
-                            </a>
-                            <button onClick={() => navigate('/login')} className="hidden md:flex items-center gap-2 text-slate-700 font-medium px-4 py-2.5 rounded-full border border-slate-200 hover:bg-slate-50 transition-colors text-sm">
-                                <User size={18} /> Login
-                            </button>
-                            <button onClick={() => navigate('/search')} className="bg-[#0b5ed7] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all flex items-center gap-2 text-sm shadow-md">
-                                Find a Teacher <ArrowRight size={16} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            {/* HEADER — Uses shared TopNavigation for consistent auth-aware header */}
+            <TopNavigation />
 
             {/* HERO SECTION */}
             <section className="relative pt-32 pb-24 lg:pt-40 lg:pb-32 bg-[#F8FAFC] overflow-hidden">
@@ -151,10 +132,10 @@ const HomePage = () => {
                             </p>
 
                             <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
-                                <button onClick={() => navigate('/search')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-all shadow-[0_8px_20px_rgba(11,94,215,0.3)] flex items-center justify-center gap-2">
+                                <button onClick={() => authNavigate('/search')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-all shadow-[0_8px_20px_rgba(11,94,215,0.3)] flex items-center justify-center gap-2">
                                     Find a Teacher <ArrowRight size={18} />
                                 </button>
-                                <button onClick={() => navigate('/parent/post-requirement')} className="w-full sm:w-auto bg-white text-slate-800 border border-slate-200 px-8 py-4 rounded-full font-semibold text-base hover:bg-slate-50 transition-colors shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex items-center justify-center gap-2">
+                                <button onClick={() => authNavigate('/parent/post-requirement')} className="w-full sm:w-auto bg-white text-slate-800 border border-slate-200 px-8 py-4 rounded-full font-semibold text-base hover:bg-slate-50 transition-colors shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex items-center justify-center gap-2">
                                     Post Tuition Requirement <ArrowRight size={18} className="text-slate-400" />
                                 </button>
                             </div>
@@ -225,7 +206,7 @@ const HomePage = () => {
                         <ChevronDown size={16} className="text-slate-400 shrink-0" />
                     </div>
 
-                    <button onClick={() => navigate('/search')} className="w-full md:w-16 h-14 md:rounded-full rounded-xl bg-[#0b5ed7] text-white flex items-center justify-center shrink-0 shadow-lg hover:bg-blue-700 transition-all group">
+                    <button onClick={() => authNavigate('/search')} className="w-full md:w-16 h-14 md:rounded-full rounded-xl bg-[#0b5ed7] text-white flex items-center justify-center shrink-0 shadow-lg hover:bg-blue-700 transition-all group">
                         <Search size={22} className="group-hover:scale-110 transition-transform" />
                         <span className="md:hidden ml-2 font-semibold">Search</span>
                     </button>
@@ -254,7 +235,7 @@ const HomePage = () => {
                         ].map((cat, idx) => (
                             <button
                                 key={idx}
-                                onClick={() => navigate(`/search?subject=${encodeURIComponent(cat.name)}`)}
+                                onClick={() => authNavigate(`/search?subject=${encodeURIComponent(cat.name)}`)}
                                 className={`flex flex-col items-center justify-center w-[140px] h-[140px] rounded-full border-2 ${cat.bg} ${cat.border} shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-2 hover:shadow-[0_16px_32px_rgba(0,0,0,0.12)] transition-all duration-300 shrink-0 group`}
                             >
                                 <div className={`${cat.color} mb-3 group-hover:scale-110 transition-transform drop-shadow-sm`}>{cat.icon}</div>
@@ -274,7 +255,7 @@ const HomePage = () => {
                                 <h2 className="font-serif text-3xl md:text-4xl font-semibold text-slate-900 mb-3 drop-shadow-sm">Teachers You Can Trust Nearby</h2>
                                 <p className="text-slate-500 text-base md:text-lg">Browse verified educators available for home or online sessions.</p>
                             </div>
-                            <button onClick={() => navigate('/search')} className="flex items-center gap-2 text-indigo-600 font-medium text-sm hover:underline drop-shadow-sm whitespace-nowrap">
+                            <button onClick={() => authNavigate('/search')} className="flex items-center gap-2 text-indigo-600 font-medium text-sm hover:underline drop-shadow-sm whitespace-nowrap">
                                 View All Tutors <ArrowRight size={16} />
                             </button>
                         </div>
@@ -308,7 +289,7 @@ const HomePage = () => {
 
                                     <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
                                         <span className="font-bold text-slate-900 text-lg">{tutor.rate}</span>
-                                        <button onClick={() => navigate('/teacher/1')} className="text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl hover:bg-indigo-600 hover:text-white transition-colors shadow-sm">
+                                        <button onClick={() => authNavigate('/search')} className="text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl hover:bg-indigo-600 hover:text-white transition-colors shadow-sm">
                                             View Profile
                                         </button>
                                     </div>
@@ -616,8 +597,8 @@ const HomePage = () => {
                         <div>
                             <h4 className="text-white font-bold tracking-wide mb-6 text-sm">Platform</h4>
                             <ul className="space-y-4 text-sm text-slate-400 font-medium">
-                                <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/search') }} className="hover:text-indigo-400 transition-colors">Find a Tutor</a></li>
-                                <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/parent/post-requirement') }} className="hover:text-indigo-400 transition-colors">Post Requirement</a></li>
+                                <li><a href="#" onClick={(e) => { e.preventDefault(); authNavigate('/search') }} className="hover:text-indigo-400 transition-colors">Find a Tutor</a></li>
+                                <li><a href="#" onClick={(e) => { e.preventDefault(); authNavigate('/parent/post-requirement') }} className="hover:text-indigo-400 transition-colors">Post Requirement</a></li>
                                 <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/login') }} className="hover:text-indigo-400 transition-colors">Join as Teacher</a></li>
                                 <li><a href="#" className="hover:text-indigo-400 transition-colors">Live Leads</a></li>
                             </ul>
@@ -626,11 +607,11 @@ const HomePage = () => {
                         <div>
                             <h4 className="text-white font-bold tracking-wide mb-6 text-sm">Subjects</h4>
                             <ul className="space-y-4 text-sm text-slate-400 font-medium">
-                                <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/search?subject=Mathematics') }} className="hover:text-indigo-400 transition-colors">Mathematics</a></li>
-                                <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/search?subject=Science') }} className="hover:text-indigo-400 transition-colors">Science & Physics</a></li>
-                                <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/search?subject=English') }} className="hover:text-indigo-400 transition-colors">English & Languages</a></li>
-                                <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/search?subject=Accounts') }} className="hover:text-indigo-400 transition-colors">Commerce & Accounts</a></li>
-                                <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/search?subject=Coding') }} className="hover:text-indigo-400 transition-colors">Computer Science</a></li>
+                                <li><a href="#" onClick={(e) => { e.preventDefault(); authNavigate('/search?subject=Mathematics') }} className="hover:text-indigo-400 transition-colors">Mathematics</a></li>
+                                <li><a href="#" onClick={(e) => { e.preventDefault(); authNavigate('/search?subject=Science') }} className="hover:text-indigo-400 transition-colors">Science & Physics</a></li>
+                                <li><a href="#" onClick={(e) => { e.preventDefault(); authNavigate('/search?subject=English') }} className="hover:text-indigo-400 transition-colors">English & Languages</a></li>
+                                <li><a href="#" onClick={(e) => { e.preventDefault(); authNavigate('/search?subject=Accounts') }} className="hover:text-indigo-400 transition-colors">Commerce & Accounts</a></li>
+                                <li><a href="#" onClick={(e) => { e.preventDefault(); authNavigate('/search?subject=Coding') }} className="hover:text-indigo-400 transition-colors">Computer Science</a></li>
                             </ul>
                         </div>
 

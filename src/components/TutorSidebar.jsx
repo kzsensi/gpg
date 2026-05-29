@@ -1,15 +1,17 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Layout,
+  LayoutDashboard,
   User,
   Mail,
   PlayCircle,
   GraduationCap,
   LogOut,
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const menuItems = [
+  { label: 'Dashboard Home', path: '/tutor/dashboard', icon: LayoutDashboard },
   { label: 'My Profile', path: '/tutor/profile', icon: User },
   { label: 'Lead Inbox', path: '/tutor/leads', icon: Mail },
   { label: 'Demo Management', path: '/tutor/demos', icon: PlayCircle },
@@ -18,61 +20,38 @@ const menuItems = [
 const TutorSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, profile, signOut } = useAuth();
 
   const isActive = (path) =>
     location.pathname === path || location.pathname.startsWith(path + '/');
 
+  const handleLogout = async () => {
+    await signOut();
+    // Force a full page navigation to clear any cached React state
+    window.location.href = '/';
+  };
+
+  const displayName = profile?.name || user?.user_metadata?.name || 'New Tutor';
+  const displayEmail = user?.email || 'No email';
+  const initial = displayName.charAt(0).toUpperCase();
+
   return (
-    <aside
-      style={{
-        width: '270px',
-        minHeight: 'calc(100vh - 80px)',
-        background: '#ffffff',
-        borderRight: '1px solid #e2e8f0',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '24px 0',
-        position: 'sticky',
-        top: '80px',
-        flexShrink: 0,
-      }}
-    >
-      {/* Brand label */}
+    <aside className="flex flex-col h-full bg-white border-r border-slate-200">
+      {/* Logo */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '0 24px 24px',
-          borderBottom: '1px solid #e2e8f0',
-          marginBottom: '16px',
-        }}
+        className="flex items-center gap-3 px-6 py-5 cursor-pointer border-b border-slate-100"
+        onClick={() => navigate('/')}
       >
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #0b5ed7, #4f46e5)',
-            color: '#fff',
-            padding: '8px',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <GraduationCap size={20} />
+        <div className="bg-indigo-600 text-white p-2 rounded-xl shadow-md">
+          <GraduationCap size={22} />
         </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: '16px', color: '#0f172a' }}>
-            Tutor Panel
-          </div>
-          <div style={{ fontSize: '12px', color: '#64748b' }}>
-            Manage your profile
-          </div>
-        </div>
+        <span className="font-sans font-bold text-xl text-slate-900 tracking-tight">
+          GharPeGyan
+        </span>
       </div>
 
-      {/* Navigation links */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 12px' }}>
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const active = isActive(item.path);
           const Icon = item.icon;
@@ -80,89 +59,35 @@ const TutorSidebar = () => {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: active ? 600 : 500,
-                fontFamily: 'inherit',
-                color: active ? '#ffffff' : '#475569',
-                background: active
-                  ? '#0b5ed7'
-                  : 'transparent',
-                transition: 'all 0.2s ease',
-                width: '100%',
-                textAlign: 'left',
-                position: 'relative',
-              }}
-              onMouseEnter={(e) => {
-                if (!active) {
-                  e.currentTarget.style.background = '#f1f5f9';
-                  e.currentTarget.style.color = '#0b5ed7';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!active) {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#475569';
-                }
-              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-medium transition-all duration-200 cursor-pointer ${
+                active
+                  ? 'bg-[#0b5ed7] text-white shadow-md'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
             >
-              <Icon size={18} />
+              <Icon size={19} strokeWidth={active ? 2.2 : 1.8} />
               <span>{item.label}</span>
-              {item.label === 'Lead Inbox' && (
-                <span
-                  style={{
-                    marginLeft: 'auto',
-                    background: active ? 'rgba(255,255,255,0.25)' : '#ef4444',
-                    color: '#fff',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '999px',
-                    lineHeight: '1.4',
-                  }}
-                >
-                  3
-                </span>
-              )}
             </button>
           );
         })}
       </nav>
 
-      {/* Logout */}
-      <div style={{ padding: '16px 12px 0', borderTop: '1px solid #e2e8f0', marginTop: '8px' }}>
+      {/* User card + Logout */}
+      <div className="px-3 pb-4 mt-auto">
+        <div className="bg-slate-50 rounded-xl p-3 mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 flex-shrink-0 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
+              {initial}
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-semibold text-slate-900 truncate">{displayName}</p>
+              <p className="text-xs text-slate-500 truncate">{displayEmail}</p>
+            </div>
+          </div>
+        </div>
         <button
-          onClick={() => navigate('/')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'inherit',
-            color: '#ef4444',
-            background: 'transparent',
-            width: '100%',
-            textAlign: 'left',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#fef2f2';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
-          }}
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
         >
           <LogOut size={18} />
           <span>Logout</span>
