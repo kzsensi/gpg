@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiDemos } from '../../services/api';
-import { PlayCircle, Clock, CheckCircle2, Calendar, MapPin, Video, X, User, Star, AlertCircle } from 'lucide-react';
+import { PlayCircle, Clock, CheckCircle2, Calendar, MapPin, Video, X, User, AlertCircle, Lock } from 'lucide-react';
+
 const formatDate = (date) => {
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).format(date);
+};
+
+const formatScheduledTime = (isoString) => {
+  if (!isoString) return null;
+  return new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(isoString));
 };
 
 const statusConfig = {
@@ -15,26 +21,56 @@ const statusConfig = {
   declined: { label: 'Declined', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200', icon: <X size={14} /> },
 };
 
+/**
+ * Determines the state of the "Join Session" button based on is_live
+ */
+const getJoinState = (demo) => {
+  if (demo.is_live) {
+    return { enabled: true, label: 'Join Session', sublabel: null };
+  }
+
+  const scheduled = demo.scheduled_at ? new Date(demo.scheduled_at) : null;
+  if (!scheduled) {
+    return { enabled: false, label: 'Waiting for Tutor', sublabel: 'Tutor will start the class when ready' };
+  }
+
+  // Session is scheduled but not live yet
+  return { 
+    enabled: false, 
+    label: 'Session Locked', 
+    sublabel: `Tutor will start this class around ${formatScheduledTime(demo.scheduled_at)}` 
+  };
+};
+
 const DemoRequests = () => {
   const { user } = useAuth();
   const [filter, setFilter] = useState('all');
   const [demos, setDemos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [joiningId, setJoiningId] = useState(null); // Which demo is currently being joined
 
   useEffect(() => {
     if (user) fetchDemos();
   }, [user]);
 
-  const fetchDemos = async () => {
+  // Auto-refresh every 15 seconds so parent sees when tutor goes live
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (user) fetchDemos(true);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const fetchDemos = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const { data } = await apiDemos.getByUser(user.id, 'parent');
       setDemos(data || []);
     } catch (err) {
-      setError(err.message);
+      if (!isBackground) setError(err.message);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
@@ -44,6 +80,20 @@ const DemoRequests = () => {
       fetchDemos();
     } catch (err) {
       alert('Failed to update status: ' + err.message);
+    }
+  };
+
+  const handleJoinSession = async (demoId) => {
+    try {
+      setJoiningId(demoId);
+      const link = await apiDemos.getSecureLink(demoId);
+      if (link) {
+        window.open(link, '_blank');
+      }
+    } catch (err) {
+      alert(err.message || 'Could not get the meeting link.');
+    } finally {
+      setJoiningId(null);
     }
   };
 
@@ -92,6 +142,8 @@ const DemoRequests = () => {
               const st = statusConfig[demo.status] || statusConfig.pending;
               const tutorName = demo.tutor_profiles?.name || 'Tutor';
               const createdDate = new Date(demo.created_at);
+              const scheduledTime = formatScheduledTime(demo.scheduled_at);
+              const joinState = getJoinState(demo);
               
               return (
                 <div key={demo.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
@@ -104,14 +156,10 @@ const DemoRequests = () => {
                         <h3 className="font-bold text-lg text-slate-900">{tutorName}</h3>
                         <p className="text-sm text-slate-500 font-medium flex items-center gap-1">
                           <MapPin size={12} /> {demo.tutor_profiles?.city || 'Remote'}
+                          {demo.tutor_profiles?.subjects?.length > 0 && (
+                            <span className="ml-2 text-slate-400">• {demo.tutor_profiles.subjects.slice(0, 3).join(', ')}</span>
+                          )}
                         </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-center">
-                        <div className="text-xs text-slate-500 font-bold uppercase">Requested On</div>
-                        <div className="text-sm font-bold text-slate-900">{formatDate(createdDate)}</div>
                       </div>
                     </div>
 
@@ -122,20 +170,63 @@ const DemoRequests = () => {
                     </div>
                   </div>
 
+                  {/* Info row */}
+                  <div className="flex flex-wrap items-center gap-4 mt-4">
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-center">
+                      <div className="text-xs text-slate-500 font-bold uppercase">Requested On</div>
+                      <div className="text-sm font-bold text-slate-900">{formatDate(createdDate)}</div>
+                    </div>
+                    {scheduledTime && (
+                      <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-2 text-center">
+                        <div className="text-xs text-blue-500 font-bold uppercase">Scheduled For</div>
+                        <div className="text-sm font-bold text-blue-900">{scheduledTime}</div>
+                      </div>
+                    )}
+                    {!scheduledTime && (demo.status === 'accepted' || demo.status === 'confirmed') && (
+                      <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-2 text-center">
+                        <div className="text-xs text-amber-500 font-bold uppercase">Schedule</div>
+                        <div className="text-sm font-bold text-amber-700">Waiting for tutor</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Note the parent sent */}
+                  {demo.note && (
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mt-4">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Your Message</div>
+                      <p className="text-sm text-slate-700">{demo.note}</p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
                   {demo.status !== 'completed' && demo.status !== 'declined' && (
-                    <div className="flex gap-3 mt-4 pt-4 border-t border-slate-100">
+                    <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-100">
                       {(demo.status === 'confirmed' || demo.status === 'accepted') && (
-                        <div className="flex flex-col gap-1">
-                          {demo.meeting_link ? (
-                            <a href={demo.meeting_link} target="_blank" rel="noreferrer" className="bg-[#0b5ed7] text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors">
-                              <Video size={16} /> Join Session
-                            </a>
-                          ) : (
-                            <button disabled className="bg-slate-200 text-slate-400 px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 cursor-not-allowed">
-                              <Video size={16} /> Awaiting Link
+                        <>
+                          {joinState.enabled ? (
+                            <button 
+                              onClick={() => handleJoinSession(demo.id)}
+                              disabled={joiningId === demo.id}
+                              className="bg-[#0b5ed7] text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-md disabled:opacity-70"
+                            >
+                              {joiningId === demo.id ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Video size={16} />
+                              )}
+                              Join Session
                             </button>
+                          ) : (
+                            <div className="flex flex-col">
+                              <button disabled className="bg-slate-200 text-slate-500 px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 cursor-not-allowed">
+                                <Lock size={16} /> {joinState.label}
+                              </button>
+                              {joinState.sublabel && (
+                                <span className="text-[10px] font-semibold text-slate-400 mt-1 ml-1">{joinState.sublabel}</span>
+                              )}
+                            </div>
                           )}
-                        </div>
+                        </>
                       )}
                       
                       {demo.status === 'pending' && (

@@ -14,7 +14,7 @@ const menuItems = [
   { label: 'Dashboard Home', path: '/tutor/dashboard', icon: LayoutDashboard },
   { label: 'My Profile', path: '/tutor/profile', icon: User },
   { label: 'Lead Inbox', path: '/tutor/leads', icon: Mail },
-  { label: 'Demo Management', path: '/tutor/demos', icon: PlayCircle },
+  { label: 'Classes & Meetings', path: '/tutor/demos', icon: PlayCircle },
 ];
 
 const TutorSidebar = () => {
@@ -26,9 +26,11 @@ const TutorSidebar = () => {
     location.pathname === path || location.pathname.startsWith(path + '/');
 
   const handleLogout = async () => {
-    await signOut();
-    // Force a full page navigation to clear any cached React state
-    window.location.href = '/';
+    if (window.confirm('Are you sure you want to log out?')) {
+      await signOut();
+      // Force a full page navigation to clear any cached React state
+      window.location.href = '/';
+    }
   };
 
   const displayName = profile?.name || user?.user_metadata?.name || 'New Tutor';

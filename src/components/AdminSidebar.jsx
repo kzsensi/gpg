@@ -26,9 +26,11 @@ const AdminSidebar = () => {
     location.pathname === path || location.pathname.startsWith(path + '/');
 
   const handleLogout = async () => {
-    await signOut();
-    // Force a full page navigation to clear any cached React state
-    window.location.href = '/';
+    if (window.confirm('Are you sure you want to log out?')) {
+      await signOut();
+      // Force a full page navigation to clear any cached React state
+      window.location.href = '/';
+    }
   };
 
   const displayName = user?.user_metadata?.name || 'Administrator';

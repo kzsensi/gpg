@@ -72,11 +72,10 @@ export const AuthProvider = ({ children }) => {
         .eq('user_id', currentUser.id)
         .maybeSingle();
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout')), 2500)
-      );
-
-      const result = await Promise.race([fetchPromise, timeoutPromise]);
+      const result = await Promise.race([
+        fetchPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Tutor fetch timeout')), 2500))
+      ]);
       tutorData = result.data;
       if (tutorData) {
         isTutor = true;
@@ -89,7 +88,11 @@ export const AuthProvider = ({ children }) => {
     let isAdmin = currentUser.user_metadata?.role === 'admin' || currentUser.app_metadata?.role === 'admin' || currentUser.role === 'admin';
     if (!isAdmin) {
       try {
-        const { data: isAdminRpc } = await supabase.rpc('is_admin');
+        const rpcPromise = supabase.rpc('is_admin');
+        const { data: isAdminRpc } = await Promise.race([
+          rpcPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('RPC timeout')), 2000))
+        ]);
         if (isAdminRpc === true) {
           isAdmin = true;
         }
@@ -134,7 +137,8 @@ export const AuthProvider = ({ children }) => {
       // Auto-heal metadata role if it is out of sync or missing
       if (currentUser.user_metadata?.role !== determinedRole) {
         console.log(`Auto-healing role metadata: ${currentUser.user_metadata?.role} -> ${determinedRole}`);
-        await supabase.auth.updateUser({
+        // NEVER AWAIT THIS! Run it in the background so it doesn't block the UI.
+        supabase.auth.updateUser({
           data: { role: determinedRole }
         }).catch(err => console.warn('Could not update metadata role:', err.message));
       }
@@ -154,9 +158,19 @@ export const AuthProvider = ({ children }) => {
     if (session?.user) {
       const currentUser = session.user;
       setUser(currentUser);
-      // Wait for fetchProfile to securely verify the role from the backend
-      // before setting the role state, to prevent login redirect race conditions.
-      await fetchProfile(currentUser);
+      
+      // Wrap fetchProfile in a race timeout so it GUARANTEES to finish
+      try {
+        await Promise.race([
+          fetchProfile(currentUser),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch overall timeout')), 4500))
+        ]);
+      } catch (err) {
+        console.warn('handleSession timeout/error:', err.message);
+        // Fallback so app doesn't break
+        setRole(prev => prev || currentUser.user_metadata?.role || 'parent');
+        setProfile(prev => prev || currentUser.user_metadata || null);
+      }
     } else {
       // No session = not logged in
       setUser(null);
@@ -169,52 +183,46 @@ export const AuthProvider = ({ children }) => {
   // ── Initialize on app load ─────────────────────────────
   useEffect(() => {
     let mounted = true;
+    let initialLoadComplete = false;
 
-    // Safety net: if loading hasn't resolved in 8s, force it to false
+    // Safety net: unconditionally stop spinning after 6s
     const safetyTimer = setTimeout(() => {
       if (mounted) {
-        console.warn('Auth init timed out — forcing loading=false');
+        console.warn('Auth init taking too long — forcing UI to load');
         setLoading(false);
       }
-    }, 8000);
+    }, 6000);
 
-    const initAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) console.warn('getSession error:', error.message);
-        if (mounted) {
-          await handleSession(session);
-          setLoading(false);
-          clearTimeout(safetyTimer);
-        }
-      } catch (err) {
-        console.warn('Auth initialization error:', err);
-        if (mounted) {
-          setLoading(false);
-          clearTimeout(safetyTimer);
-        }
+    // Initial session fetch
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) console.warn('getSession error:', error.message);
+      if (mounted) {
+        handleSession(session).finally(() => {
+          if (mounted) {
+            initialLoadComplete = true;
+            setLoading(false);
+            clearTimeout(safetyTimer);
+          }
+        });
       }
-    };
+    });
 
-    initAuth();
-
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
 
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          await handleSession(session);
+          // If we are still doing the initial load, let getSession() handle it to avoid duplicate network calls
+          if (initialLoadComplete) {
+            handleSession(session);
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setRole(null);
           setProfile(null);
           setProfileComplete(false);
           setLoading(false);
-        }
-        // INITIAL_SESSION fires on page load — ensure loading is cleared
-        if (event === 'INITIAL_SESSION') {
-          setLoading(false);
-          clearTimeout(safetyTimer);
         }
       }
     );
@@ -317,9 +325,21 @@ export const AuthProvider = ({ children }) => {
     setProfileComplete(false);
 
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: 'local' });
     } catch (err) {
       console.warn('signOut error (state already cleared):', err.message);
+    }
+    
+    // Safety fallback: Manually clear Supabase tokens from localStorage
+    // This fixes the bug where refreshing after logout automatically logs the user back in.
+    try {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (e) {
+      console.warn('Could not clear localStorage:', e);
     }
 
     return { error: null };

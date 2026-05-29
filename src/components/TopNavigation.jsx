@@ -8,8 +8,10 @@ const TopNavigation = () => {
   const { user, role, isAuthenticated, signOut } = useAuth();
 
   const handleLogout = async () => {
-    await signOut();
-    window.location.href = '/';
+    if (window.confirm('Are you sure you want to log out?')) {
+      await signOut();
+      window.location.href = '/';
+    }
   };
 
   const displayName = user?.user_metadata?.name || 'User';
@@ -29,6 +31,42 @@ const TopNavigation = () => {
             <span className="font-sans font-bold text-xl sm:text-2xl text-slate-900 tracking-tight">
               GharPeGyan
             </span>
+          </div>
+
+          {/* Center Links (Desktop only) */}
+          <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+            {(!role || role === 'parent') && (
+              <>
+                <button 
+                  onClick={() => navigate('/search')} 
+                  className="text-slate-600 hover:text-[#0b5ed7] font-semibold text-[15px] transition-colors"
+                >
+                  Find a Teacher
+                </button>
+                <button 
+                  onClick={() => navigate('/parent/post-requirement')} 
+                  className="text-slate-600 hover:text-[#0b5ed7] font-semibold text-[15px] transition-colors"
+                >
+                  Post Requirement
+                </button>
+              </>
+            )}
+            {role === 'tutor' && (
+              <button 
+                onClick={() => navigate('/tutor/dashboard')} 
+                className="text-slate-600 hover:text-[#0b5ed7] font-semibold text-[15px] transition-colors"
+              >
+                Go to Dashboard
+              </button>
+            )}
+            {role === 'admin' && (
+              <button 
+                onClick={() => navigate('/admin/dashboard')} 
+                className="text-slate-600 hover:text-[#0b5ed7] font-semibold text-[15px] transition-colors"
+              >
+                Go to Dashboard
+              </button>
+            )}
           </div>
 
           {/* Right side */}

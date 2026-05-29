@@ -182,11 +182,11 @@ export const apiDemos = {
   },
 
   /**
-   * Tutor updates demo status (e.g., accepts it and adds Zoom link)
+   * Tutor updates demo status (e.g., accepts it)
    */
-  updateStatus: async (demoId, status, meetingLink = null) => {
+  updateStatus: async (demoId, status, meetingLink = null, scheduledAt = null) => {
     const updateData = { status, updated_at: new Date() };
-    if (meetingLink) updateData.meeting_link = meetingLink;
+    if (scheduledAt) updateData.scheduled_at = scheduledAt;
 
     const { data, error } = await supabase
       .from('demo_requests')
@@ -196,7 +196,71 @@ export const apiDemos = {
       .single();
 
     if (error) throw new Error(error.message);
+
+    // If meeting link is provided, save it to the secure vault
+    if (meetingLink) {
+      await apiDemos.updateMeetingDetails(demoId, meetingLink);
+    }
     return data;
+  },
+
+  /**
+   * Update meeting link in the secure vault
+   */
+  updateMeetingDetails: async (demoId, meetingLink) => {
+    const { data, error } = await supabase
+      .from('demo_meetings')
+      .upsert({ demo_id: demoId, meeting_link: meetingLink })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  /**
+   * Toggle is_live status (Allow Join)
+   */
+  setDemoLive: async (demoId, isLive) => {
+    const { data, error } = await supabase
+      .from('demo_requests')
+      .update({ is_live: isLive, updated_at: new Date() })
+      .eq('id', demoId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  /**
+   * Parent fetches link securely. Only works if is_live is true due to RLS.
+   */
+  getSecureLink: async (demoId) => {
+    const { data, error } = await supabase
+      .from('demo_meetings')
+      .select('meeting_link')
+      .eq('demo_id', demoId)
+      .single();
+
+    if (error) throw new Error('Meeting link is not available yet. Tutor must start the class first.');
+    return data.meeting_link;
+  },
+
+  /**
+   * Fetch all meeting links for a list of demo IDs (Used by Tutor dashboard)
+   */
+  getTutorLinks: async (demoIds) => {
+    if (!demoIds || demoIds.length === 0) return {};
+    const { data, error } = await supabase
+      .from('demo_meetings')
+      .select('demo_id, meeting_link')
+      .in('demo_id', demoIds);
+
+    if (error) return {}; // Ignore errors on fetch
+    const links = {};
+    data.forEach(d => { links[d.demo_id] = d.meeting_link; });
+    return links;
   }
 };
 

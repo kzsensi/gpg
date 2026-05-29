@@ -71,7 +71,7 @@ const ReviewCard = ({ title, content, author, lessons, subject, img, bg, border,
 );
 
 const HomePage = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, role } = useAuth();
     const navigate = useNavigate();
 
     const authNavigate = (path) => {
@@ -132,12 +132,26 @@ const HomePage = () => {
                             </p>
 
                             <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
-                                <button onClick={() => authNavigate('/search')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-all shadow-[0_8px_20px_rgba(11,94,215,0.3)] flex items-center justify-center gap-2">
-                                    Find a Teacher <ArrowRight size={18} />
-                                </button>
-                                <button onClick={() => authNavigate('/parent/post-requirement')} className="w-full sm:w-auto bg-white text-slate-800 border border-slate-200 px-8 py-4 rounded-full font-semibold text-base hover:bg-slate-50 transition-colors shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex items-center justify-center gap-2">
-                                    Post Tuition Requirement <ArrowRight size={18} className="text-slate-400" />
-                                </button>
+                                {(!role || role === 'parent') && (
+                                    <>
+                                        <button onClick={() => authNavigate('/search')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-all shadow-[0_8px_20px_rgba(11,94,215,0.3)] flex items-center justify-center gap-2">
+                                            Find a Teacher <ArrowRight size={18} />
+                                        </button>
+                                        <button onClick={() => authNavigate('/parent/post-requirement')} className="w-full sm:w-auto bg-white text-slate-800 border border-slate-200 px-8 py-4 rounded-full font-semibold text-base hover:bg-slate-50 transition-colors shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex items-center justify-center gap-2">
+                                            Post Tuition Requirement <ArrowRight size={18} className="text-slate-400" />
+                                        </button>
+                                    </>
+                                )}
+                                {role === 'tutor' && (
+                                    <button onClick={() => navigate('/tutor/dashboard')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-all shadow-[0_8px_20px_rgba(11,94,215,0.3)] flex items-center justify-center gap-2">
+                                        Go to Dashboard <ArrowRight size={18} />
+                                    </button>
+                                )}
+                                {role === 'admin' && (
+                                    <button onClick={() => navigate('/admin/dashboard')} className="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2">
+                                        Go to Admin Panel <ArrowRight size={18} />
+                                    </button>
+                                )}
                             </div>
 
                             <div className="flex flex-wrap gap-8 pt-6">

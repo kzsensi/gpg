@@ -26,8 +26,10 @@ const ParentSidebar = () => {
     location.pathname === path || location.pathname.startsWith(path + '/');
 
   const handleLogout = async () => {
-    await signOut();
-    window.location.href = '/';
+    if (window.confirm('Are you sure you want to log out?')) {
+      await signOut();
+      window.location.href = '/';
+    }
   };
 
   const displayName = user?.user_metadata?.name || 'New Parent';

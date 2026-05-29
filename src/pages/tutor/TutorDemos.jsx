@@ -2,9 +2,15 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiDemos } from '../../services/api';
-import { PlayCircle, Clock, CheckCircle2, Calendar, Video, X, User, MapPin, BookOpen, Phone, Link as LinkIcon, AlertCircle } from 'lucide-react';
+import { PlayCircle, Clock, CheckCircle2, Calendar, Video, X, User, MapPin, BookOpen, Phone, Link as LinkIcon, AlertCircle, ExternalLink, MessageSquare } from 'lucide-react';
+
 const formatDate = (date) => {
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).format(date);
+};
+
+const formatScheduledTime = (isoString) => {
+  if (!isoString) return null;
+  return new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(isoString));
 };
 
 const statusConfig = {
@@ -14,6 +20,89 @@ const statusConfig = {
   declined: { label: 'Declined', bg: 'bg-red-100', text: 'text-red-700', icon: <X size={14} /> },
 };
 
+/**
+ * AcceptModal — Shown when tutor clicks "Accept Request"
+ * Collects: scheduled date, time, and optional meeting link
+ */
+const AcceptModal = ({ onClose, onSubmit, loading }) => {
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [link, setLink] = useState('');
+
+  // Set minimum date to today
+  const today = new Date().toISOString().split('T')[0];
+
+  const handleSubmit = () => {
+    if (!date || !time) {
+      alert('Please select a date and time for the session.');
+      return;
+    }
+    const scheduledAt = new Date(`${date}T${time}`).toISOString();
+    onSubmit({ scheduledAt, meetingLink: link || null });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+        <h3 className="text-xl font-bold text-slate-900 mb-1">Schedule Demo Session</h3>
+        <p className="text-sm text-slate-500 mb-6">Pick a date & time, and optionally paste a meeting link now.</p>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Date *</label>
+              <input
+                type="date"
+                min={today}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0b5ed7] focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Time *</label>
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0b5ed7] focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Meeting Link (optional — add later too)</label>
+            <input
+              type="url"
+              placeholder="https://zoom.us/j/... or https://meet.google.com/..."
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0b5ed7] focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex-1 bg-emerald-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-700 flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <><CheckCircle2 size={16} /> Accept & Schedule</>
+            )}
+          </button>
+          <button onClick={onClose} className="px-5 py-3 rounded-xl text-sm font-bold border border-slate-200 text-slate-600 hover:bg-slate-50">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TutorDemos = () => {
   const { user } = useAuth();
   const [tab, setTab] = useState('upcoming');
@@ -21,6 +110,8 @@ const TutorDemos = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [meetingLinks, setMeetingLinks] = useState({});
+  const [acceptingId, setAcceptingId] = useState(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   useEffect(() => {
     if (user) fetchDemos();
@@ -32,11 +123,12 @@ const TutorDemos = () => {
       const { data } = await apiDemos.getByUser(user.id, 'tutor');
       setDemos(data || []);
       
-      const initialLinks = {};
-      (data || []).forEach(d => {
-        if (d.meeting_link) initialLinks[d.id] = d.meeting_link;
-      });
-      setMeetingLinks(initialLinks);
+      // Fetch secure meeting links for all demos
+      if (data && data.length > 0) {
+        const demoIds = data.map(d => d.id);
+        const links = await apiDemos.getTutorLinks(demoIds);
+        setMeetingLinks(links);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -44,11 +136,22 @@ const TutorDemos = () => {
     }
   };
 
+  const handleAcceptWithSchedule = async ({ scheduledAt, meetingLink }) => {
+    try {
+      setSubmitLoading(true);
+      await apiDemos.updateStatus(acceptingId, 'accepted', meetingLink, scheduledAt);
+      setAcceptingId(null);
+      fetchDemos();
+    } catch (err) {
+      alert('Failed to accept: ' + err.message);
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
   const handleUpdateStatus = async (demoId, newStatus) => {
     try {
-      // If accepting, maybe send the meeting link if it was entered
-      const link = meetingLinks[demoId];
-      await apiDemos.updateStatus(demoId, newStatus, newStatus === 'accepted' ? link : null);
+      await apiDemos.updateStatus(demoId, newStatus);
       fetchDemos();
     } catch (err) {
       alert('Failed to update status: ' + err.message);
@@ -60,11 +163,23 @@ const TutorDemos = () => {
     if (!link) return alert('Please enter a meeting link');
     
     try {
-      await apiDemos.updateStatus(demoId, 'accepted', link);
-      alert('Meeting link saved successfully!');
+      await apiDemos.updateMeetingDetails(demoId, link);
+      alert('Meeting link saved securely!');
       fetchDemos();
     } catch (err) {
       alert('Failed to save link: ' + err.message);
+    }
+  };
+
+  const handleToggleLive = async (demoId, currentLiveStatus) => {
+    try {
+      const newStatus = !currentLiveStatus;
+      await apiDemos.setDemoLive(demoId, newStatus);
+      
+      // Update local state without full refetch for snappier UI
+      setDemos(prev => prev.map(d => d.id === demoId ? { ...d, is_live: newStatus } : d));
+    } catch (err) {
+      alert('Failed to update live status: ' + err.message);
     }
   };
 
@@ -76,7 +191,7 @@ const TutorDemos = () => {
     <DashboardLayout type="tutor">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-1">Demo Management</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-1">Classes & Meetings</h1>
           <p className="text-slate-500 font-medium">Manage your upcoming and past demo sessions.</p>
         </div>
 
@@ -109,6 +224,7 @@ const TutorDemos = () => {
               const req = demo.parent_requirements || {};
               const parentName = req.student_name ? `${req.student_name}'s Parent` : 'Parent';
               const createdDate = new Date(demo.created_at);
+              const scheduledTime = formatScheduledTime(demo.scheduled_at);
 
               return (
                 <div key={demo.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
@@ -131,11 +247,18 @@ const TutorDemos = () => {
                     </span>
                   </div>
 
+                  {/* Info pills */}
                   <div className="flex flex-wrap gap-4 mt-4 mb-4">
                     <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
                       <div className="text-[10px] text-slate-500 font-bold uppercase">Requested On</div>
                       <div className="text-sm font-bold text-slate-900">{formatDate(createdDate)}</div>
                     </div>
+                    {scheduledTime && (
+                      <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5">
+                        <div className="text-[10px] text-blue-500 font-bold uppercase">Scheduled For</div>
+                        <div className="text-sm font-bold text-blue-900">{scheduledTime}</div>
+                      </div>
+                    )}
                     <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
                       <div className="text-[10px] text-slate-500 font-bold uppercase">Mode</div>
                       <div className="text-sm font-bold text-slate-900">{req.mode === 'online' ? 'Online' : 'Home Visit'}</div>
@@ -152,27 +275,62 @@ const TutorDemos = () => {
                     )}
                   </div>
 
+                  {/* Parent's note (if any) */}
+                  {demo.note && (
+                    <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <MessageSquare size={14} className="text-amber-600" />
+                        <span className="text-[10px] text-amber-600 font-bold uppercase">Parent's Message</span>
+                      </div>
+                      <p className="text-sm text-amber-900">{demo.note}</p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
                   <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
                     {demo.status === 'accepted' && (
-                      <div className="w-full">
-                        <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Meeting Link (For Online Classes)</label>
-                        <div className="flex gap-2">
-                          <input 
-                            type="text" 
-                            placeholder="Paste Zoom / Google Meet link here" 
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#0b5ed7]" 
-                            value={meetingLinks[demo.id] || ''}
-                            onChange={(e) => setMeetingLinks(prev => ({...prev, [demo.id]: e.target.value}))}
-                          />
-                          <button 
-                            onClick={() => handleSaveLink(demo.id)}
-                            className="bg-[#0b5ed7] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-700 flex items-center gap-2"
-                          >
-                            <LinkIcon size={16} /> Save Link
-                          </button>
+                      <div className="w-full space-y-4">
+                        {/* Meeting link input */}
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Meeting Link (For Online Classes)</label>
+                          <div className="flex gap-2">
+                            <input 
+                              type="text" 
+                              placeholder="Paste Zoom / Google Meet link here" 
+                              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#0b5ed7]" 
+                              value={meetingLinks[demo.id] || ''}
+                              onChange={(e) => setMeetingLinks(prev => ({...prev, [demo.id]: e.target.value}))}
+                            />
+                            <button 
+                              onClick={() => handleSaveLink(demo.id)}
+                              className="bg-slate-800 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-700 flex items-center gap-2"
+                            >
+                              <LinkIcon size={16} /> Save Link
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex gap-3 mt-4">
-                          <button onClick={() => handleUpdateStatus(demo.id, 'completed')} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-700 flex items-center gap-2">
+                        
+                        {/* Tutor's own Join + action buttons */}
+                        <div className="flex flex-wrap gap-3 items-center">
+                          <button 
+                            onClick={() => handleToggleLive(demo.id, demo.is_live)}
+                            className={`${demo.is_live ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2`}
+                          >
+                            <Video size={16} /> 
+                            {demo.is_live ? 'End Class (Lock Link)' : 'Start Class (Allow Parent to Join)'}
+                          </button>
+                          
+                          {meetingLinks[demo.id] && (
+                            <a 
+                              href={meetingLinks[demo.id]} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="text-[#0b5ed7] bg-blue-50 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-100 flex items-center gap-2"
+                            >
+                              <ExternalLink size={14} /> Join Session Myself
+                            </a>
+                          )}
+                          <button onClick={() => handleUpdateStatus(demo.id, 'completed')} className="bg-slate-100 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-200 flex items-center gap-2 ml-auto">
                             <CheckCircle2 size={14} /> Mark Completed
                           </button>
                           <button onClick={() => handleUpdateStatus(demo.id, 'declined')} className="border border-red-200 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 flex items-center gap-2">
@@ -184,7 +342,7 @@ const TutorDemos = () => {
                     
                     {demo.status === 'pending' && (
                       <div className="flex gap-3">
-                        <button onClick={() => handleUpdateStatus(demo.id, 'accepted')} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-700 flex items-center gap-2">
+                        <button onClick={() => setAcceptingId(demo.id)} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-700 flex items-center gap-2">
                           <CheckCircle2 size={16} /> Accept Request
                         </button>
                         <button onClick={() => handleUpdateStatus(demo.id, 'declined')} className="border border-red-200 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 flex items-center gap-2">
@@ -207,6 +365,15 @@ const TutorDemos = () => {
           </div>
         )}
       </div>
+
+      {/* Accept & Schedule Modal */}
+      {acceptingId && (
+        <AcceptModal
+          onClose={() => setAcceptingId(null)}
+          onSubmit={handleAcceptWithSchedule}
+          loading={submitLoading}
+        />
+      )}
     </DashboardLayout>
   );
 };
