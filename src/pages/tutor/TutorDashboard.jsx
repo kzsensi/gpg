@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import DashboardLayout from '../../components/DashboardLayout';
 import { apiRequirements, apiDemos } from '../../services/api';
 import { Mail, PlayCircle, Users, Eye, Clock, MapPin, IndianRupee } from 'lucide-react';
+import UserAvatar from '../../components/UserAvatar';
 
 const timeAgo = (dateStr) => {
   if (!dateStr) return '';
@@ -139,9 +140,12 @@ const TutorDashboard = () => {
               <div className="space-y-4">
                 {recentLeads.map((lead) => (
                   <div key={lead.id} className="flex gap-4 p-4 rounded-lg border border-slate-200 hover:border-blue-100 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-[#0b5ed7] shrink-0">
-                      <Mail size={18} />
-                    </div>
+                    <UserAvatar
+                      userId={lead.parent_id}
+                      name={lead.student_name || 'Student'}
+                      sizeClass="w-10 h-10 text-sm"
+                      bgClass="bg-blue-50 text-[#0b5ed7]"
+                    />
                     <div className="flex-1">
                       <div className="flex justify-between items-start mb-1">
                         <p className="font-bold text-slate-900 text-[15px]">{lead.class_level} • {lead.subjects?.[0] || 'All Subjects'}</p>
@@ -189,9 +193,12 @@ const TutorDashboard = () => {
                   const displayInfo = parentName !== 'Parent' ? `From ${parentName}` : (cleanNote ? `"${cleanNote}"` : 'From Parent');
                   return (
                   <div key={demo.id} className="flex gap-4 p-4 bg-white rounded-lg border border-amber-100 shadow-sm">
-                     <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-                       <PlayCircle size={18} />
-                     </div>
+                     <UserAvatar
+                       userId={demo.parent_id}
+                       name={parentName}
+                       sizeClass="w-10 h-10 text-sm"
+                       bgClass="bg-amber-100 text-amber-600"
+                     />
                      <div className="flex-1">
                        <div className="flex justify-between items-start mb-1">
                          <p className="font-bold text-slate-900 text-[15px]">
@@ -235,9 +242,12 @@ const TutorDashboard = () => {
                   const displayInfo = parentName !== 'Parent' ? `With ${parentName}` : (demo.note ? `"${demo.note}"` : 'With Parent');
                   return (
                   <div key={demo.id} className="flex gap-4 p-4 rounded-lg border border-slate-200">
-                     <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
-                       <PlayCircle size={18} />
-                     </div>
+                     <UserAvatar
+                       userId={demo.parent_id}
+                       name={parentName}
+                       sizeClass="w-10 h-10 text-sm"
+                       bgClass="bg-indigo-50 text-indigo-600"
+                     />
                      <div className="flex-1">
                        <div className="flex justify-between items-start mb-1">
                          <p className="font-bold text-slate-900 text-[15px]">
@@ -281,9 +291,12 @@ const TutorDashboard = () => {
                   const studentName = req.student_name || 'Student';
                   return (
                     <div key={student.id} className="flex gap-4 p-4 rounded-lg border border-emerald-100 bg-emerald-50/30">
-                       <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 font-bold">
-                         {studentName.charAt(0).toUpperCase()}
-                       </div>
+                        <UserAvatar
+                          userId={student.parent_id}
+                          name={studentName}
+                          sizeClass="w-10 h-10 text-sm"
+                          bgClass="bg-emerald-100 text-emerald-700"
+                        />
                        <div className="flex-1">
                          <h3 className="font-bold text-slate-900 text-[15px] truncate max-w-[150px]">{studentName}</h3>
                          <p className="text-[13px] text-slate-500 font-medium truncate max-w-[150px]">

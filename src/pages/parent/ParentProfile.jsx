@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User, Mail, Phone, MapPin, Camera, Save, GraduationCap, School, BookOpen, Edit3, Shield, CheckCircle2, AlertCircle, ChevronRight, ChevronLeft, Check
@@ -6,10 +6,45 @@ import {
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { uploadAvatar } from '../../lib/imageUpload';
 
 const ParentProfile = () => {
   const { user, profile, profileComplete, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  
+  const fileInputRef = useRef(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const url = await uploadAvatar(user.id, file);
+      
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { avatar_url: url }
+      });
+      if (updateError) throw updateError;
+      
+      await refreshProfile();
+      setSuccessMsg('Profile picture updated successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      setError('Failed to upload profile picture: ' + err.message);
+    } finally {
+      setUploadingPhoto(false);
+      if (e.target) e.target.value = '';
+    }
+  };
   
   const [isWizard, setIsWizard] = useState(!profileComplete);
   const [currentStep, setCurrentStep] = useState(1);
@@ -364,13 +399,38 @@ const ParentProfile = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 text-center">
-            <div className="relative w-28 h-28 mx-auto mb-4">
-              <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
-                {getInitial(formData.name)}
-              </div>
-              <button className="absolute bottom-1 right-1 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer">
+            <div className="relative w-28 h-28 mx-auto mb-4 group">
+              {uploadingPhoto ? (
+                <div className="w-28 h-28 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shadow-lg">
+                  <div className="w-8 h-8 border-4 border-[#0b5ed7] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : user?.user_metadata?.avatar_url || user?.user_metadata?.photo_url ? (
+                <img
+                  src={user.user_metadata.avatar_url || user.user_metadata.photo_url}
+                  alt={formData.name}
+                  className="w-28 h-28 rounded-full object-cover shadow-lg border-2 border-slate-200"
+                />
+              ) : (
+                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                  {getInitial(formData.name)}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handlePhotoUploadClick}
+                disabled={uploadingPhoto}
+                className="absolute bottom-1 right-1 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
+                title="Change profile picture"
+              >
                 <Camera size={16} className="text-slate-600" />
               </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handlePhotoChange}
+              />
             </div>
             <h3 className="font-semibold text-lg text-slate-900">{formData.name || 'Student'}</h3>
             <p className="text-sm text-slate-500 mt-0.5">{user?.email}</p>

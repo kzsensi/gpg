@@ -26,7 +26,7 @@ export const apiTutors = {
   getVisibleTutors: async ({ subject, city, page = 1 } = {}) => {
     let query = supabase
       .from('tutor_profiles')
-      .select('id, user_id, name, bio, city, subjects, boards, classes, hourly_rate, rating, total_reviews, experience_years, is_verified, mode, phone', { count: 'exact' })
+      .select('id, user_id, name, bio, city, subjects, boards, classes, hourly_rate, rating, total_reviews, experience_years, is_verified, mode, phone, photo_url', { count: 'exact' })
       .eq('is_visible', true);
 
     if (subject && subject !== 'All Subjects') {
@@ -177,7 +177,7 @@ export const apiDemos = {
       .from('demo_requests')
       .select(`
         *,
-        tutor_profiles(name, city, subjects),
+        tutor_profiles(name, city, subjects, photo_url),
         parent_requirements(student_name, subjects, city, area, class_level, phone, mode)
       `)
       .eq(column, userId)
@@ -490,7 +490,7 @@ export const apiAdmin = {
       .from('demo_requests')
       .select(`
         *,
-        tutor_profiles(name, city, subjects),
+        tutor_profiles(name, city, subjects, photo_url),
         parent_requirements(student_name, subjects, city, class_level)
       `)
       .order('created_at', { ascending: false });

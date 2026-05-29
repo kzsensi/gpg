@@ -402,9 +402,17 @@ const TeacherSearch = () => {
                       className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col">
                       <div className="flex gap-4 mb-4">
                         <div className="relative shrink-0">
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white text-xl font-bold shadow-md">
-                            {tutor.name?.charAt(0)?.toUpperCase() || 'T'}
-                          </div>
+                          {tutor.photo_url ? (
+                            <img
+                              src={tutor.photo_url}
+                              alt={tutor.name}
+                              className="w-16 h-16 rounded-full object-cover shadow-md border border-slate-100"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                              {tutor.name?.charAt(0)?.toUpperCase() || 'T'}
+                            </div>
+                          )}
                           {tutor.is_verified && (
                             <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
                               <ShieldCheck size={16} className="text-emerald-500 fill-emerald-100" />

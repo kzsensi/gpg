@@ -15,6 +15,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import logoImg from '../assets/logo.png';
 
 const menuItems = [
   { label: 'Dashboard', path: '/parent/dashboard', icon: LayoutDashboard },
@@ -50,15 +51,10 @@ const ParentSidebar = () => {
     <aside className="flex flex-col h-full bg-white border-r border-slate-200">
       {/* Logo */}
       <div
-        className="flex items-center gap-3 px-6 py-6 cursor-pointer border-b border-slate-100"
+        className="flex items-center justify-start px-6 py-5 cursor-pointer border-b border-slate-100"
         onClick={() => navigate('/')}
       >
-        <div className="bg-[#0b5ed7] text-white p-2 rounded-lg">
-          <GraduationCap size={22} />
-        </div>
-        <span className="font-bold text-xl text-slate-900 tracking-tight">
-          GharPeGyan
-        </span>
+        <img src={logoImg} alt="GharPeGyan Logo" className="h-[64px] translate-y-[3px] object-contain" />
       </div>
 
       {/* Navigation */}

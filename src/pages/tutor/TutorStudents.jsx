@@ -4,6 +4,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiDemos } from '../../services/api';
 import { Users, User, BookOpen, MapPin, MessageCircle, Calendar, CheckCircle2, Video, Link as LinkIcon } from 'lucide-react';
+import UserAvatar from '../../components/UserAvatar';
 
 const ScheduleModal = ({ onClose, onSubmit, loading }) => {
   const [date, setDate] = useState('');
@@ -162,9 +163,12 @@ const TutorStudents = () => {
                 <div key={studentRecord.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
                   <div className="p-6 bg-emerald-50/30 md:w-1/3 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col justify-center">
                     <div className="flex gap-4 items-center mb-4">
-                      <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-2xl shrink-0">
-                        {studentName.charAt(0).toUpperCase()}
-                      </div>
+                      <UserAvatar
+                        userId={studentRecord.parent_id}
+                        name={studentName}
+                        sizeClass="w-14 h-14 text-2xl"
+                        bgClass="bg-emerald-100 text-emerald-700"
+                      />
                       <div>
                         <h3 className="font-bold text-xl text-slate-900">{studentName}</h3>
                         {req.class_level && <p className="text-sm font-medium text-emerald-700">Class: {req.class_level}</p>}

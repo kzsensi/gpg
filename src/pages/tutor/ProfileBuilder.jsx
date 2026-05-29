@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiTutors } from '../../services/api';
 import { supabase } from '../../lib/supabase';
 import {
-  User, BookOpen, Briefcase, Save, Check, ChevronRight, ChevronLeft, AlertCircle, GraduationCap
+  User, BookOpen, Briefcase, Save, Check, ChevronRight, ChevronLeft, AlertCircle, GraduationCap, Camera
 } from 'lucide-react';
+import { uploadAvatar } from '../../lib/imageUpload';
 
 const steps = [
   { id: 1, label: 'Personal Info', icon: User },
@@ -25,6 +26,32 @@ const ProfileBuilder = () => {
   const { user, profile, refreshProfile } = useAuth();
   
   const [currentStep, setCurrentStep] = useState(1);
+  
+  const fileInputRef = useRef(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState(null);
+
+  const handlePhotoUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    setPhotoError(null);
+
+    try {
+      const url = await uploadAvatar(user.id, file);
+      handleInputChange('photo_url', url);
+    } catch (err) {
+      setPhotoError('Failed to upload picture: ' + err.message);
+    } finally {
+      setUploadingPhoto(false);
+      if (e.target) e.target.value = '';
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
@@ -37,7 +64,8 @@ const ProfileBuilder = () => {
     education: '',
     mode: 'Both',
     experience_years: 2,
-    hourly_rate: 500
+    hourly_rate: 500,
+    photo_url: ''
   });
 
   const [selectedSubjects, setSelectedSubjects] = useState([]);
@@ -55,7 +83,8 @@ const ProfileBuilder = () => {
         education: profile.education || '',
         mode: profile.mode || 'Both',
         experience_years: profile.experience_years || 2,
-        hourly_rate: profile.hourly_rate || 500
+        hourly_rate: profile.hourly_rate || 500,
+        photo_url: profile.photo_url || user?.user_metadata?.photo_url || user?.user_metadata?.avatar_url || ''
       });
       if (profile.subjects?.length) setSelectedSubjects(profile.subjects);
       if (profile.boards?.length) setSelectedBoards(profile.boards);
@@ -99,6 +128,7 @@ const ProfileBuilder = () => {
           city: formData.city,
           role: 'tutor',
           subjects: selectedSubjects,
+          photo_url: formData.photo_url,
         }
       });
 
@@ -119,6 +149,7 @@ const ProfileBuilder = () => {
         boards: selectedBoards,
         classes: selectedClasses,
         is_visible: true,
+        photo_url: formData.photo_url,
       });
 
       const timeoutPromise = new Promise((_, reject) =>
@@ -175,6 +206,52 @@ const ProfileBuilder = () => {
       case 1:
         return (
           <div className="space-y-5">
+            {/* Profile Photo Upload Section */}
+            <div className="flex flex-col sm:flex-row items-center gap-5 pb-5 border-b border-slate-100 mb-5">
+              <div className="relative shrink-0">
+                {uploadingPhoto ? (
+                  <div className="w-24 h-24 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 shadow-md">
+                    <div className="w-7 h-7 border-3 border-[#0b5ed7] border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : formData.photo_url ? (
+                  <img
+                    src={formData.photo_url}
+                    alt="Profile Preview"
+                    className="w-24 h-24 rounded-2xl object-cover shadow-md border-2 border-white"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white text-3xl font-bold shadow-md">
+                    {formData.name ? formData.name.charAt(0).toUpperCase() : 'T'}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={handlePhotoUploadClick}
+                  disabled={uploadingPhoto}
+                  className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-50"
+                  title="Upload profile picture"
+                >
+                  <Camera size={14} className="text-slate-600" />
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                />
+              </div>
+              <div className="text-center sm:text-left">
+                <h4 className="font-bold text-slate-800 text-sm">Profile Picture</h4>
+                <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                  Upload a professional, friendly headshot. Automatically converted to a highly compressed WebP.
+                </p>
+                {photoError && (
+                  <p className="text-xs font-semibold text-red-600 mt-1">{photoError}</p>
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label className={labelCls}>Full Name *</label>

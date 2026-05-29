@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import DashboardLayout from '../../components/DashboardLayout';
-import { apiRequirements, apiDemos } from '../../services/api';
+import { apiRequirements, apiDemos, apiMessages } from '../../services/api';
 import { BookMarked, PlayCircle, PlusCircle, ArrowRight, User, Users, MessageCircle, Clock, Search } from 'lucide-react';
 
 const ParentDashboard = () => {
@@ -12,6 +12,8 @@ const ParentDashboard = () => {
   const [stats, setStats] = useState({
     activeRequirements: 0,
     upcomingDemos: 0,
+    teacherMatches: 0,
+    messagesCount: 0
   });
   const [loading, setLoading] = useState(true);
   const [recentDemos, setRecentDemos] = useState([]);
@@ -23,6 +25,8 @@ const ParentDashboard = () => {
         setLoading(true);
         let reqCount = 0;
         let upcomingList = [];
+        let matchesCount = 0;
+        let messageCount = 0;
 
         try {
           const { data: reqData } = await apiRequirements.getByParent(user.id);
@@ -32,11 +36,26 @@ const ParentDashboard = () => {
         try {
           const { data: demoData } = await apiDemos.getByUser(user.id, 'parent');
           upcomingList = demoData?.filter(d => ['pending', 'accepted'].includes(d.status)) || [];
+          
+          const uniqueTutors = new Set();
+          (demoData || []).forEach(demo => {
+            if (['confirmed', 'completed', 'hired'].includes(demo.status) && demo.tutor_id) {
+              uniqueTutors.add(demo.tutor_id);
+            }
+          });
+          matchesCount = uniqueTutors.size;
         } catch (e) { console.warn('Could not fetch demos:', e.message); }
+
+        try {
+          const contacts = await apiMessages.getContacts(user.id);
+          messageCount = contacts?.length || 0;
+        } catch (e) { console.warn('Could not fetch contacts:', e.message); }
         
         setStats({
           activeRequirements: reqCount,
-          upcomingDemos: upcomingList.length
+          upcomingDemos: upcomingList.length,
+          teacherMatches: matchesCount,
+          messagesCount: messageCount
         });
         
         setRecentDemos(upcomingList.slice(0, 3));
@@ -93,14 +112,14 @@ const ParentDashboard = () => {
 
             <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col">
               <p className="text-sm font-semibold text-slate-500 mb-2">Teacher Matches</p>
-              <h3 className="text-3xl font-bold text-slate-900 mb-1">0</h3>
-              <button className="text-xs font-semibold text-[#0b5ed7] hover:underline self-start mt-auto">View all</button>
+              <h3 className="text-3xl font-bold text-slate-900 mb-1">{stats.teacherMatches}</h3>
+              <button onClick={() => navigate('/parent/matches')} className="text-xs font-semibold text-[#0b5ed7] hover:underline self-start mt-auto">View all</button>
             </div>
 
             <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col">
               <p className="text-sm font-semibold text-slate-500 mb-2">Messages</p>
-              <h3 className="text-3xl font-bold text-slate-900 mb-1">0</h3>
-              <button className="text-xs font-semibold text-[#0b5ed7] hover:underline self-start mt-auto">View all</button>
+              <h3 className="text-3xl font-bold text-slate-900 mb-1">{stats.messagesCount}</h3>
+              <button onClick={() => navigate('/parent/messages')} className="text-xs font-semibold text-[#0b5ed7] hover:underline self-start mt-auto">View all</button>
             </div>
           </div>
         )}

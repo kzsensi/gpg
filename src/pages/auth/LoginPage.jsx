@@ -58,15 +58,17 @@ const LoginPage = () => {
     e.preventDefault();
     setAuthError(null);
 
+    const emailClean = formData.email.trim().toLowerCase();
+
     // Basic Validation
-    if (!formData.email || !formData.password) {
+    if (!emailClean || !formData.password) {
       setAuthError('Please fill in all required fields.');
       return;
     }
     
     // Email regex validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
+    if (!emailRegex.test(emailClean)) {
       setAuthError('Please enter a valid email address.');
       return;
     }
@@ -91,8 +93,8 @@ const LoginPage = () => {
           return;
         }
         
-        // Call real Supabase Auth
-        const { data, error } = await signUp(formData.email, formData.password, role, formData.name);
+        // Call real Supabase Auth with sanitized email
+        const { data, error } = await signUp(emailClean, formData.password, role, formData.name);
         
         if (!error) {
           // Signup successful. Supabase sends an email confirmation.
@@ -100,13 +102,24 @@ const LoginPage = () => {
           navigate('/otp-verify', {
             state: {
               role,
-              contact: formData.email, // Passing email instead of phone
+              contact: emailClean, // Passing sanitized email
             },
           });
         }
       } else {
-        // Login flow
-        const { data, error } = await signIn(formData.email, formData.password);
+        // Login flow: try exact casing (trimmed) first, fallback to lowercase if it fails and email had uppercase.
+        const emailTrimmed = formData.email.trim();
+        let { data, error } = await signIn(emailTrimmed, formData.password);
+        
+        if (error && emailTrimmed !== emailClean) {
+          console.log("Login with exact casing failed. Retrying with lowercase email...");
+          const retry = await signIn(emailClean, formData.password);
+          if (!retry.error) {
+            data = retry.data;
+            error = null;
+            setAuthError(null);
+          }
+        }
         
         if (!error && data?.user) {
           // No need to navigate here directly. The useEffect above will detect

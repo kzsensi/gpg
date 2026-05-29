@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import logoImg from '../assets/logo.png';
 
 const TopNavigation = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const TopNavigation = () => {
 
   const displayName = user?.user_metadata?.name || 'User';
   const initial = displayName.charAt(0).toUpperCase();
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.photo_url || '';
   const dashboardPath = role === 'parent' ? '/parent/dashboard' : (role === 'admin' ? '/admin/dashboard' : '/tutor/dashboard');
   const roleLabel = role === 'parent' ? 'Parent' : (role === 'admin' ? 'Admin' : 'Tutor');
 
@@ -35,26 +37,14 @@ const TopNavigation = () => {
   return (
     <header className="sticky top-0 w-full z-50 bg-white border-b border-slate-200">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 sm:h-20">
+        <div className="flex justify-between items-center h-16 sm:h-20 relative">
           
-          {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden pr-4">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-slate-600 hover:text-slate-900 focus:outline-none p-1 rounded-lg hover:bg-slate-50 transition-colors"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-
-          {/* Logo */}
-          <div className="flex items-center gap-2.5 cursor-pointer flex-1 md:flex-none justify-center md:justify-start -ml-8 md:ml-0" onClick={() => { closeMenu(); navigate('/'); }}>
-            <div className="bg-[#0b5ed7] text-white p-2 rounded-lg">
-              <GraduationCap size={22} />
-            </div>
-            <span className="font-bold text-xl text-slate-900">
-              GharPeGyan
-            </span>
+          {/* Logo (Starts from left side on all screens) */}
+          <div 
+            className="flex items-center gap-2.5 cursor-pointer z-10 shrink-0" 
+            onClick={() => { closeMenu(); navigate('/'); }}
+          >
+            <img src={logoImg} alt="GharPeGyan Logo" style={{ height: '36px', width: 'auto', maxWidth: '200px' }} className="object-contain" />
           </div>
 
           {/* Center Links (Desktop only) */}
@@ -63,51 +53,68 @@ const TopNavigation = () => {
               <button 
                 key={idx}
                 onClick={() => navigate(link.path)} 
-                className="text-slate-600 hover:text-[#0b5ed7] font-semibold text-[15px] transition-colors"
+                className="text-slate-600 hover:text-[#0b5ed7] font-semibold text-[15px] transition-colors cursor-pointer"
               >
                 {link.label}
               </button>
             ))}
           </div>
 
-          {/* Right side */}
-          <div className="hidden md:flex items-center gap-4">
-            {isAuthenticated ? (
-              <>
-                <button
-                  onClick={() => navigate(dashboardPath)}
-                  className="flex items-center gap-2 text-slate-700 font-medium px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-sm"
-                >
-                  <LayoutDashboard size={16} />
-                  Dashboard
-                </button>
+          {/* Right side container (Desktop Auth / Mobile Hamburger) */}
+          <div className="flex items-center gap-4 z-10">
+            {/* Desktop Auth Section */}
+            <div className="hidden md:flex items-center gap-4">
+              {isAuthenticated ? (
+                <>
+                  <button
+                    onClick={() => navigate(dashboardPath)}
+                    className="flex items-center gap-2 text-slate-700 font-medium px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-sm cursor-pointer"
+                  >
+                    <LayoutDashboard size={16} />
+                    Dashboard
+                  </button>
 
-                <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm">
-                    {initial}
+                  <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm overflow-hidden border border-slate-200">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                      ) : (
+                        initial
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 leading-none">{displayName}</p>
+                      <p className="text-[12px] text-slate-500 font-medium mt-1">{roleLabel}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 leading-none">{displayName}</p>
-                    <p className="text-[12px] text-slate-500 font-medium mt-1">{roleLabel}</p>
-                  </div>
-                </div>
 
+                  <button
+                    onClick={handleLogout}
+                    className="ml-2 p-2.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                    title="Logout"
+                  >
+                    <LogOut size={18} />
+                  </button>
+                </>
+              ) : (
                 <button
-                  onClick={handleLogout}
-                  className="ml-2 p-2.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                  title="Logout"
+                  onClick={() => navigate('/login')}
+                  className="bg-[#0b5ed7] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm cursor-pointer"
                 >
-                  <LogOut size={18} />
+                  Login / Sign Up
                 </button>
-              </>
-            ) : (
+              )}
+            </div>
+
+            {/* Mobile Menu Button (Right side on mobile) */}
+            <div className="flex items-center md:hidden">
               <button
-                onClick={() => navigate('/login')}
-                className="bg-[#0b5ed7] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
               >
-                Login / Sign Up
+                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-            )}
+            </div>
           </div>
         </div>
       </div>

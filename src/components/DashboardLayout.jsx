@@ -5,6 +5,7 @@ import ParentSidebar from './ParentSidebar';
 import TutorSidebar from './TutorSidebar';
 import AdminSidebar from './AdminSidebar';
 import { useAuth } from '../contexts/AuthContext';
+import logoImg from '../assets/logo.png';
 
 const DashboardLayout = ({ children, type = 'parent' }) => {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ const DashboardLayout = ({ children, type = 'parent' }) => {
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : (type === 'parent' ? 'P' : (type === 'admin' ? 'A' : 'T'));
   };
+
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.photo_url || profile?.photo_url || '';
 
   return (
     <div className="flex h-screen bg-[#f8f9fb] overflow-hidden">
@@ -61,25 +64,12 @@ const DashboardLayout = ({ children, type = 'parent' }) => {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header Bar */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 flex-shrink-0 z-20">
-          <div className="flex items-center gap-3">
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-            >
-              <Menu size={22} />
-            </button>
-
-            {/* Mobile logo */}
-            <div
-              className="lg:hidden flex items-center gap-2 cursor-pointer"
-              onClick={() => navigate('/')}
-            >
-              <div className="bg-indigo-600 text-white p-1.5 rounded-lg">
-                <GraduationCap size={18} />
-              </div>
-              <span className="font-bold text-lg text-slate-900">GharPeGyan</span>
-            </div>
+          {/* Mobile logo on left */}
+          <div
+            className="lg:hidden flex items-center gap-2 cursor-pointer shrink-0"
+            onClick={() => navigate('/')}
+          >
+            <img src={logoImg} alt="GharPeGyan Logo" style={{ height: '36px', width: 'auto', maxWidth: '200px' }} className="object-contain" />
           </div>
 
           <div className="flex items-center gap-3">
@@ -97,9 +87,21 @@ const DashboardLayout = ({ children, type = 'parent' }) => {
                 </p>
                 <p className="text-[11px] text-slate-400 leading-tight capitalize">{type}</p>
               </div>
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white font-semibold text-sm shadow-md flex-shrink-0">
-                {getInitial(displayName)}
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0b5ed7] to-indigo-500 flex items-center justify-center text-white font-semibold text-sm shadow-md flex-shrink-0 overflow-hidden border border-slate-200">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  getInitial(displayName)
+                )}
               </div>
+            </button>
+
+            {/* Mobile hamburger on the right */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <Menu size={22} />
             </button>
           </div>
         </header>
