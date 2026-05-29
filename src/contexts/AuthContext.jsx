@@ -62,61 +62,85 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = useCallback(async (currentUser) => {
     if (!currentUser) return;
 
-    const userRole = currentUser.user_metadata?.role;
+    // 1. Fetch tutor profile from tutor_profiles to see if it exists
+    let tutorData = null;
+    let isTutor = false;
+    try {
+      const fetchPromise = supabase
+        .from('tutor_profiles')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Query timeout')), 2500)
+      );
+
+      const result = await Promise.race([fetchPromise, timeoutPromise]);
+      tutorData = result.data;
+      if (tutorData) {
+        isTutor = true;
+      }
+    } catch (err) {
+      console.warn('Could not fetch tutor profile:', err.message);
+    }
+
+    // 2. Check if admin (metadata check + is_admin RPC check on the backend)
+    let isAdmin = currentUser.user_metadata?.role === 'admin' || currentUser.app_metadata?.role === 'admin' || currentUser.role === 'admin';
+    if (!isAdmin) {
+      try {
+        const { data: isAdminRpc } = await supabase.rpc('is_admin');
+        if (isAdminRpc === true) {
+          isAdmin = true;
+        }
+      } catch (err) {
+        console.warn('Error checking is_admin RPC:', err.message);
+      }
+    }
+
+    // 3. Determine the final secure role
+    let determinedRole = 'parent';
+    if (isAdmin) {
+      determinedRole = 'admin';
+    } else if (isTutor || currentUser.user_metadata?.role === 'tutor' || currentUser.app_metadata?.role === 'tutor' || currentUser.role === 'tutor') {
+      determinedRole = 'tutor';
+    } else if (currentUser.user_metadata?.role === 'parent' || currentUser.app_metadata?.role === 'parent' || currentUser.role === 'parent') {
+      determinedRole = 'parent';
+    }
+
+    // Update role state
+    setRole(determinedRole);
 
     try {
-      if (userRole === 'admin') {
+      if (determinedRole === 'admin') {
         // Admin has no profile table — use metadata, always mark complete
         setProfile(currentUser.user_metadata || null);
         setProfileComplete(true);
-      } else if (userRole === 'tutor') {
-        const fetchPromise = supabase
-          .from('tutor_profiles')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .maybeSingle();
-
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Query timeout')), 2500)
-        );
-
-        let data = null;
-        let fetchError = null;
-
-        try {
-          const result = await Promise.race([fetchPromise, timeoutPromise]);
-          data = result.data;
-          fetchError = result.error;
-        } catch (timeoutErr) {
-          fetchError = timeoutErr;
-        }
-
-        if (fetchError && fetchError.code !== 'PGRST116') {
-          console.warn('Could not fetch tutor profile (may be RLS):', fetchError.message);
-        }
-
+      } else if (determinedRole === 'tutor') {
         // Set profile to DB row if available, otherwise fallback to user_metadata
-        setProfile(data || currentUser.user_metadata || null);
+        setProfile(tutorData || currentUser.user_metadata || null);
         
         // Complete = has name (from DB row OR from signup metadata)
-        const hasName = !!(data?.name || currentUser.user_metadata?.name);
-        const hasSubjects = !!(data?.subjects?.length || currentUser.user_metadata?.subjects?.length);
+        const hasName = !!(tutorData?.name || currentUser.user_metadata?.name);
+        const hasSubjects = !!(tutorData?.subjects?.length || currentUser.user_metadata?.subjects?.length);
         setProfileComplete(hasName && hasSubjects);
-      } else if (userRole === 'parent') {
+      } else {
+        // parent
         const hasName = !!currentUser.user_metadata?.name;
         setProfileComplete(hasName);
         setProfile(currentUser.user_metadata || null);
-      } else {
-        // Unknown role — treat as incomplete but don't block
-        const hasName = !!currentUser.user_metadata?.name;
-        setProfileComplete(hasName);
-        setProfile(null);
+      }
+
+      // Auto-heal metadata role if it is out of sync or missing
+      if (currentUser.user_metadata?.role !== determinedRole) {
+        console.log(`Auto-healing role metadata: ${currentUser.user_metadata?.role} -> ${determinedRole}`);
+        await supabase.auth.updateUser({
+          data: { role: determinedRole }
+        }).catch(err => console.warn('Could not update metadata role:', err.message));
       }
     } catch (err) {
-      console.warn('fetchProfile error (non-fatal):', err.message);
-      // Don't throw — just set safe defaults so the app doesn't freeze
+      console.warn('fetchProfile state update error (non-fatal):', err.message);
       setProfile(currentUser?.user_metadata || null);
-      // If we can't read the DB, assume profile is complete to avoid redirect loops
       const hasName = !!currentUser?.user_metadata?.name;
       setProfileComplete(hasName);
     }
@@ -130,7 +154,8 @@ export const AuthProvider = ({ children }) => {
     if (session?.user) {
       const currentUser = session.user;
       setUser(currentUser);
-      setRole(currentUser.user_metadata?.role || null);
+      // Wait for fetchProfile to securely verify the role from the backend
+      // before setting the role state, to prevent login redirect race conditions.
       await fetchProfile(currentUser);
     } else {
       // No session = not logged in

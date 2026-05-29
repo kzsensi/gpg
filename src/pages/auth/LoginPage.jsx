@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 import {
   GraduationCap,
   Mail,
@@ -22,7 +23,19 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = location.state?.from || null;
-  const { signIn, signUp, authError, setAuthError } = useAuth();
+  const { signIn, signUp, authError, setAuthError, role: userRole, isAuthenticated } = useAuth();
+
+  // Redirect logged-in users to their correct dashboard automatically once role is resolved
+  React.useEffect(() => {
+    if (isAuthenticated && userRole) {
+      const destination = redirectTo || (
+        userRole === 'admin' ? '/admin/dashboard' :
+        userRole === 'tutor' ? '/tutor/dashboard' :
+        '/parent/dashboard'
+      );
+      navigate(destination, { replace: true });
+    }
+  }, [isAuthenticated, userRole, navigate, redirectTo]);
   
   const [activeTab, setActiveTab] = useState('login');
   const [role, setRole] = useState('parent');
@@ -96,15 +109,9 @@ const LoginPage = () => {
         const { data, error } = await signIn(formData.email, formData.password);
         
         if (!error && data?.user) {
-          // Login successful — give AuthContext a moment to process the session
-          // before navigating, so ProtectedRoute doesn't see loading=true
-          const actualRole = data.user.user_metadata?.role || role;
-          const destination = redirectTo || (actualRole === 'parent' ? '/parent/dashboard' : (actualRole === 'admin' ? '/admin/dashboard' : '/tutor/dashboard'));
-          
-          // Small delay lets onAuthStateChange fire and handleSession complete
-          setTimeout(() => {
-            navigate(destination, { replace: true });
-          }, 300);
+          // No need to navigate here directly. The useEffect above will detect
+          // the session change, wait for AuthContext to resolve the role, and
+          // redirect the user to the correct dashboard.
         }
       }
     } catch (err) {
