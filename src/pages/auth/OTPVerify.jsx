@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import logoImg from '../../assets/logo.png';
 import {
   GraduationCap,
   ArrowLeft,
@@ -45,16 +46,8 @@ const OTPVerify = () => {
           style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}
         >
           {/* Logo */}
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <div
-              className="p-2.5 rounded-xl text-white shadow-md"
-              style={{ background: 'linear-gradient(135deg, #0b5ed7, #4f46e5)' }}
-            >
-              <GraduationCap size={24} />
-            </div>
-            <span className="font-sans font-bold text-xl text-slate-900 tracking-tight">
-              GharPeGyan
-            </span>
+          <div className="flex items-center justify-center mb-8">
+            <img src={logoImg} alt="GharPeGyan Logo" style={{ height: '40px', width: 'auto', maxWidth: '200px' }} className="object-contain" />
           </div>
 
           <div

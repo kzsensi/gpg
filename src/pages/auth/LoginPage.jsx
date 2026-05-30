@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import logoImg from '../../assets/logo.png';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import {
@@ -182,89 +183,53 @@ const LoginPage = () => {
       {/* ── Left Branding Panel ── */}
       <div
         className="hidden lg:flex lg:w-[480px] xl:w-[520px] flex-col justify-between p-10 relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, #0b5ed7 0%, #4f46e5 50%, #7c3aed 100%)',
-        }}
+        style={{ background: '#f1f5f9' }}
       >
-        {/* Decorative circles */}
+        {/* Subtle dot-grid pattern */}
         <div
-          className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-10"
-          style={{ background: 'white' }}
-        />
-        <div
-          className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full opacity-10"
-          style={{ background: 'white' }}
-        />
-        <div
-          className="absolute top-1/2 right-10 w-32 h-32 rounded-full opacity-5"
-          style={{ background: 'white' }}
+          className="absolute inset-0 opacity-[0.4]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
         />
 
         {/* Logo */}
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-16">
-            <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
-              <GraduationCap size={28} className="text-white" />
-            </div>
-            <span className="font-sans font-bold text-2xl text-white tracking-tight">
-              GharPeGyan
-            </span>
+          <div className="flex items-center mb-14">
+            <img src={logoImg} alt="GharPeGyan Logo" style={{ height: '48px', width: 'auto', maxWidth: '200px' }} className="object-contain" />
           </div>
 
           <h1
-            className="font-serif text-4xl xl:text-[42px] font-bold text-white leading-tight mb-6"
-            style={{ lineHeight: '1.2' }}
+            className="text-4xl xl:text-[42px] font-bold text-slate-900 leading-tight mb-5"
+            style={{ lineHeight: '1.2', fontFamily: 'inherit' }}
           >
             Quality Education,
             <br />
             Right at Your
             <br />
-            <span className="text-amber-300">Doorstep.</span>
+            <span style={{ color: '#0b5ed7' }}>Doorstep.</span>
           </h1>
 
-          <p className="text-blue-100 text-lg leading-relaxed mb-10 max-w-sm">
-            Connect with expert tutors in your neighbourhood for personalised
-            home tuition that transforms learning.
+          <p className="text-slate-500 text-base leading-relaxed mb-10 max-w-sm">
+            Connect with expert home tutors in your neighbourhood for personalised, one-on-one learning.
           </p>
 
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {features.map((f, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="bg-white/15 backdrop-blur-sm p-1.5 rounded-lg">
-                  <f.icon size={16} className="text-amber-300" />
+                <div
+                  className="p-1.5 rounded-lg"
+                  style={{ background: '#e0edff' }}
+                >
+                  <f.icon size={16} style={{ color: '#0b5ed7' }} />
                 </div>
-                <span className="text-white/90 text-sm font-medium">{f.text}</span>
+                <span className="text-slate-700 text-sm font-medium">{f.text}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Trust badge */}
-        <div className="relative z-10 bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex -space-x-2">
-              {['bg-amber-400', 'bg-emerald-400', 'bg-rose-400', 'bg-blue-300'].map(
-                (bg, i) => (
-                  <div
-                    key={i}
-                    className={`w-8 h-8 rounded-full ${bg} border-2 border-white/30 flex items-center justify-center text-white text-xs font-bold`}
-                  >
-                    {['A', 'R', 'P', 'S'][i]}
-                  </div>
-                )
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={14} className="text-amber-300 fill-amber-300" />
-              ))}
-            </div>
-          </div>
-          <p className="text-white/90 text-sm">
-            Trusted by <span className="font-bold text-white">10,000+</span> families across
-            Delhi, Mumbai & Bengaluru
-          </p>
-        </div>
       </div>
 
       {/* ── Right Form Panel ── */}
@@ -280,15 +245,7 @@ const LoginPage = () => {
                 <ArrowLeft size={20} />
             </Link>
             <div className="flex items-center gap-2">
-                <div
-                  className="p-1.5 rounded-lg shadow-sm text-white"
-                  style={{ background: '#4f46e5' }}
-                >
-                  <GraduationCap size={18} />
-                </div>
-                <span className="font-sans font-bold text-lg text-slate-900 tracking-tight">
-                  GharPeGyan
-                </span>
+                <img src={logoImg} alt="GharPeGyan Logo" style={{ height: '32px', width: 'auto', maxWidth: '160px' }} className="object-contain" />
             </div>
             <div className="w-9"></div>{/* Spacer for center alignment */}
           </div>
@@ -500,7 +457,7 @@ const LoginPage = () => {
                 loading ? 'opacity-70 cursor-wait' : 'shadow-lg hover:shadow-xl'
               }`}
               style={{
-                background: 'linear-gradient(135deg, #0b5ed7, #4f46e5)',
+                background: '#0b5ed7',
               }}
             >
               {loading ? (
