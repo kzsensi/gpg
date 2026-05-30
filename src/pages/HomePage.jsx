@@ -15,6 +15,7 @@ import founderImg from '../assets/founder.png';
 import puneImg from '../assets/pune.png';
 import hyderabadImg from '../assets/hyderabad.png';
 import logoImg from '../assets/logo.png';
+import verifiedImg from '../assets/verified-teachers.png';
 
 // Custom Hook for Scroll Reveal Animation
 const useScrollReveal = () => {
@@ -134,8 +135,8 @@ const HomePage = () => {
                                         <button onClick={() => authNavigate('/search')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
                                             Find a Teacher <ArrowRight size={18} />
                                         </button>
-                                        <button onClick={() => authNavigate('/parent/post-requirement')} className="w-full sm:w-auto bg-white text-slate-700 border border-slate-300 px-8 py-4 rounded-lg font-semibold text-base hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                            Post Tuition Requirement
+                                        <button onClick={() => navigate('/login')} className="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                            Join as Teacher <GraduationCap size={18} />
                                         </button>
                                     </>
                                 )}
@@ -256,55 +257,59 @@ const HomePage = () => {
                 </section>
             </RevealBlock>
 
-            {/* TEACHER DISCOVERY */}
+            {/* VERIFIED TEACHERS TRUST SECTION */}
             <RevealBlock>
                 <section className="py-24 w-full bg-white border-y border-slate-200">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 max-w-6xl mx-auto gap-4">
-                            <div>
-                                <h2 className="text-3xl font-bold text-slate-900 mb-3">Verified Teachers</h2>
-                                <p className="text-slate-600 text-lg">Browse educators available for home or online sessions.</p>
-                            </div>
-                            <button onClick={() => authNavigate('/search')} className="flex items-center gap-2 text-[#0b5ed7] font-semibold hover:underline">
-                                View All Tutors <ArrowRight size={16} />
-                            </button>
-                        </div>
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                            {[
-                                { name: "Anjali Sharma", sub: "Mathematics", rate: "₹600/hr", img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&h=200&q=80", mode: "Online & Home", city: "Mumbai", reviews: 24, intro: "I help students prepare for their CBSE board exams with a focus on problem-solving." },
-                                { name: "Sneha Gupta", sub: "English Literature", rate: "₹400/hr", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&h=200&q=80", mode: "Home Tutor", city: "Bangalore", reviews: 42, intro: "I focus on helping students improve their reading comprehension and writing skills." },
-                                { name: "Rahul Sharma", sub: "Computer Science", rate: "₹800/hr", img: "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=200&h=200&q=80", mode: "Online & Home", city: "Pune", reviews: 15, intro: "I teach Python and Java from scratch, making sure the fundamentals are rock solid." },
-                            ].map((tutor, i) => (
-                                <div key={i} className="bg-white rounded-xl p-6 border border-slate-200 hover:shadow-lg transition-shadow flex flex-col h-full">
-                                    <div className="flex gap-4 mb-4">
-                                        <img src={tutor.img} alt={tutor.name} className="w-14 h-14 object-cover rounded-full bg-slate-100 shrink-0" />
-                                        <div>
-                                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-1.5">
-                                                {tutor.name} <CheckCircle2 size={16} className="text-[#0b5ed7]" />
-                                            </h3>
-                                            <div className="flex items-center gap-1 text-sm text-slate-600 mt-1">
-                                                <Star size={14} className="text-amber-400 fill-amber-400" />
-                                                <span className="font-semibold text-slate-900">4.9</span>
-                                                <span className="text-slate-500">({tutor.reviews} reviews)</span>
+                            {/* Text Side */}
+                            <div className="space-y-6">
+                                <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-full border border-emerald-200">
+                                    <ShieldCheck size={16} /> Every Teacher is Verified
+                                </div>
+                                <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 leading-tight">
+                                    We personally verify every teacher on our platform.
+                                </h2>
+                                <p className="text-slate-600 text-lg leading-relaxed">
+                                    Your child's safety and learning quality come first. Before any teacher appears on GharPeGyan, they go through a rigorous multi-step verification process.
+                                </p>
+
+                                <div className="space-y-4 pt-2">
+                                    {[
+                                        { title: 'Identity & Background Check', desc: 'Government ID verification and background screening for every tutor.' },
+                                        { title: 'Qualification Review', desc: 'We verify degrees, certifications, and teaching experience before approval.' },
+                                        { title: 'Demo Teaching Assessment', desc: 'Each teacher demonstrates their teaching ability in a live assessment.' },
+                                        { title: 'Ongoing Quality Monitoring', desc: 'We regularly collect parent feedback and monitor teaching quality.' },
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex items-start gap-3">
+                                            <div className="mt-1 shrink-0">
+                                                <CheckCircle2 size={20} className="text-emerald-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-slate-900 text-[15px]">{item.title}</h3>
+                                                <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <div className="space-y-2 mb-4 grow">
-                                        <p className="text-slate-700 text-[15px] flex items-center gap-2"><BookOpen size={16} className="text-slate-400" /> {tutor.sub}</p>
-                                        <p className="text-slate-700 text-[15px] flex items-center gap-2"><MapPin size={16} className="text-slate-400" /> {tutor.city} • {tutor.mode}</p>
-                                        <p className="text-slate-600 text-sm mt-3 bg-slate-50 p-3 rounded-lg border border-slate-100">"{tutor.intro}"</p>
-                                    </div>
-
-                                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
-                                        <span className="font-bold text-slate-900">{tutor.rate}</span>
-                                        <button onClick={() => authNavigate('/search')} className="text-sm font-semibold text-[#0b5ed7] hover:underline">
-                                            View Profile
-                                        </button>
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
+
+                                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                                    <button onClick={() => authNavigate('/search')} className="bg-[#0b5ed7] text-white px-7 py-3.5 rounded-lg font-semibold text-[15px] hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                        Browse Verified Teachers <ArrowRight size={16} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Image Side */}
+                            <div className="flex justify-center lg:justify-end">
+                                <img
+                                    src={verifiedImg}
+                                    alt="Teacher verification process"
+                                    className="w-full max-w-md lg:max-w-lg object-contain rounded-2xl"
+                                />
+                            </div>
+
                         </div>
                     </div>
                 </section>
