@@ -9,6 +9,12 @@ import {
     Terminal, Microscope, FileSpreadsheet, Mic, MessageCircle,
     CheckCircle2, ChevronDown, MonitorPlay, Compass, ChevronLeft
 } from 'lucide-react';
+import heroImg from '../assets/hero.png';
+import heroMobileImg from '../assets/hero-mobile.png';
+import founderImg from '../assets/founder.png';
+import puneImg from '../assets/pune.png';
+import hyderabadImg from '../assets/hyderabad.png';
+import logoImg from '../assets/logo.png';
 
 // Custom Hook for Scroll Reveal Animation
 const useScrollReveal = () => {
@@ -77,7 +83,7 @@ const HomePage = () => {
             navigate('/login', { state: { from: path } });
         }
     };
-    
+
     const [activeFaq, setActiveFaq] = useState(1);
 
     const faqs = [
@@ -156,11 +162,14 @@ const HomePage = () => {
                         </div>
 
                         <div className="flex justify-center lg:justify-end">
-                            <img
-                                src="https://i.ibb.co/JjLhj8vk/Chat-GPT-Image-May-22-2026-06-37-33-PM.png"
-                                alt="Student learning online"
-                                className="w-full max-w-lg object-contain"
-                            />
+                            <picture className="w-full max-w-lg flex justify-center lg:justify-end">
+                                <source media="(min-width: 1024px)" srcSet={heroImg} />
+                                <img
+                                    src={heroMobileImg}
+                                    alt="Student learning online"
+                                    className="w-full max-w-sm lg:max-w-lg object-contain rounded-2xl shadow-sm lg:rounded-none lg:shadow-none"
+                                />
+                            </picture>
                         </div>
 
                     </div>
@@ -316,22 +325,22 @@ const HomePage = () => {
                                     <ReviewCard
                                         bg="bg-white" border="border-slate-200" text="text-slate-900" tag="text-[#0b5ed7]"
                                         title="Very patient teacher"
-                                        content="Tiffany has been great. She is knowledgeable and patient. All the lessons are thoughtfully prepared and my son enjoys them."
-                                        author="Joanna" lessons="16 lessons" subject="Reading Tutor"
+                                        content="Miss Jiya has been great. She is knowledgeable and patient. All the lessons are thoughtfully prepared and my son enjoys them."
+                                        author="Shreyas.P" lessons="16 lessons" subject="English Tutor"
                                         img="https://images.unsplash.com/photo-1531123897727-8f129e1bf98c?auto=format&fit=crop&w=100&h=100&q=80"
                                     />
                                     <ReviewCard
                                         bg="bg-white" border="border-slate-200" text="text-slate-900" tag="text-[#0b5ed7]"
                                         title="Significant progress"
                                         content="Every lesson has been helpful, setting my daughter up for real progress. The teacher is easy to talk to and very professional."
-                                        author="Danielle" lessons="19 lessons" subject="English Tutor"
+                                        author="Kavya.S" lessons="19 lessons" subject="Hindi Tutor"
                                         img="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&h=100&q=80"
                                     />
                                     <ReviewCard
                                         bg="bg-white" border="border-slate-200" text="text-slate-900" tag="text-[#0b5ed7]"
                                         title="Better grades"
                                         content="My son was struggling with math, but after a few weeks with his new tutor, his confidence and grades have improved."
-                                        author="Sarah" lessons="8 lessons" subject="Math Tutor"
+                                        author="Anita.D" lessons="8 lessons" subject="Maths Tutor"
                                         img="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&h=100&q=80"
                                     />
                                 </React.Fragment>
@@ -349,7 +358,7 @@ const HomePage = () => {
 
                             <div className="flex flex-col items-center justify-center p-6">
                                 <img
-                                    src="https://i.ibb.co/R4kJqShg/Screenshot-2026-05-22-182222.png?auto=format&fit=crop&w=400&h=400&q=80"
+                                    src={founderImg}
                                     alt="Founder"
                                     className="w-64 h-64 sm:w-80 sm:h-80 object-cover rounded-2xl mb-6 shadow-sm border border-slate-200"
                                 />
@@ -413,7 +422,6 @@ const HomePage = () => {
                                 <div className="absolute inset-0 bg-slate-900/40"></div>
                                 <div className="absolute bottom-6 left-6 text-white">
                                     <h3 className="text-2xl font-bold mb-1">Delhi</h3>
-                                    <p className="text-white/90 text-sm">399+ tutors</p>
                                 </div>
                             </div>
 
@@ -422,7 +430,6 @@ const HomePage = () => {
                                 <div className="absolute inset-0 bg-slate-900/40"></div>
                                 <div className="absolute bottom-5 left-5 text-white">
                                     <h3 className="text-xl font-bold mb-1">Mumbai</h3>
-                                    <p className="text-white/90 text-sm">199+ tutors</p>
                                 </div>
                             </div>
 
@@ -431,7 +438,22 @@ const HomePage = () => {
                                 <div className="absolute inset-0 bg-slate-900/40"></div>
                                 <div className="absolute bottom-5 left-5 text-white">
                                     <h3 className="text-xl font-bold mb-1">Bangalore</h3>
-                                    <p className="text-white/90 text-sm">99+ tutors</p>
+                                </div>
+                            </div>
+
+                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group">
+                                <img src={puneImg} alt="Pune" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <div className="absolute inset-0 bg-slate-900/40"></div>
+                                <div className="absolute bottom-5 left-5 text-white">
+                                    <h3 className="text-xl font-bold mb-1">Pune</h3>
+                                </div>
+                            </div>
+
+                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group">
+                                <img src={hyderabadImg} alt="Hyderabad" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <div className="absolute inset-0 bg-slate-900/40"></div>
+                                <div className="absolute bottom-5 left-5 text-white">
+                                    <h3 className="text-xl font-bold mb-1">Hyderabad</h3>
                                 </div>
                             </div>
                         </div>
@@ -451,7 +473,7 @@ const HomePage = () => {
                                 Simple answers to common questions about our platform.
                             </p>
                         </div>
-                        
+
                         <div className="space-y-4 max-w-3xl mx-auto">
                             {faqs.map((faq, i) => {
                                 const isOpen = activeFaq === i;
@@ -489,10 +511,7 @@ const HomePage = () => {
 
                         <div className="md:col-span-2">
                             <div className="flex items-center gap-2 mb-4">
-                                <GraduationCap size={24} className="text-white" />
-                                <span className="font-bold text-xl text-white">
-                                    GharPeGyan
-                                </span>
+                                <img src={logoImg} alt="GharPeGyan Logo" className="h-10 w-auto object-contain shrink-0" />
                             </div>
                             <p className="text-[15px] text-slate-400 leading-relaxed max-w-md">
                                 Connecting parents with verified, trustworthy teachers for home and online tuition across India.
