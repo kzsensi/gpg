@@ -225,10 +225,18 @@ const TutorDemos = () => {
               const st = statusConfig[demo.status] || statusConfig.pending;
               const req = demo.parent_requirements || {};
               const profile = demo.parent_profiles || {};
-              const parentNameMatch = demo.note?.match(/\[From:\s*(.*?)(?:\s*\|\s*For:.*?|)\]/);
-              const noteParent = parentNameMatch ? parentNameMatch[1].trim() : null;
-              const parentName = req.student_name ? `${req.student_name}'s Parent` : (profile.name || noteParent || 'Parent');
-              const cleanNote = demo.note ? demo.note.replace(/\[From:\s*.*?\]\s*/, '') : '';
+              // Get parent name: prefer parent_profiles DB row, then requirement, then legacy note parse
+              const parentDbProfile = demo.parent_profiles || {};
+              const legacyNameMatch = demo.note?.match(/\[From:\s*(.*?)(?:\s*\|\s*For:.*?|)\]/);
+              const legacyName = legacyNameMatch ? legacyNameMatch[1].trim() : null;
+              const parentName = req.student_name
+                ? `${req.student_name}'s Parent`
+                : (parentDbProfile.name || legacyName || 'Parent');
+              // New columns — fallback to requirement data for old records
+              const demoSubject = demo.subject || req.subjects?.[0];
+              const demoMode = demo.preferred_mode || (req.mode === 'online' ? 'Online' : (req.mode || null));
+              // Only show note if it's a clean message (not the old packed [From:...] format)
+              const cleanMessage = demo.note && !demo.note.startsWith('[From:') ? demo.note : null;
               const createdDate = new Date(demo.created_at);
               const scheduledTime = formatScheduledTime(demo.scheduled_at);
 
@@ -247,7 +255,7 @@ const TutorDemos = () => {
                             {req.subjects && <span className="flex items-center gap-1"><BookOpen size={14} /> Subjects: {req.subjects?.join(', ')}</span>}
                           </p>
                         ) : (
-                          cleanNote && <p className="text-sm text-slate-500 italic mt-1 max-w-sm">"{cleanNote}"</p>
+                          cleanMessage && <p className="text-sm text-slate-500 italic mt-1 max-w-sm">"{cleanMessage}"</p>
                         )}
                       </div>
                     </div>
@@ -269,14 +277,24 @@ const TutorDemos = () => {
                         <div className="text-sm font-bold text-blue-900">{scheduledTime}</div>
                       </div>
                     )}
-                    <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase">Mode</div>
-                      <div className="text-sm font-bold text-slate-900">{req.mode === 'online' ? 'Online' : 'Home Visit'}</div>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase">City / Area</div>
-                      <div className="text-sm font-bold text-slate-900">{req.area}, {req.city}</div>
-                    </div>
+                    {demoSubject && (
+                      <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2.5">
+                        <div className="text-[10px] text-indigo-500 font-bold uppercase">Subject</div>
+                        <div className="text-sm font-bold text-indigo-900">{demoSubject}</div>
+                      </div>
+                    )}
+                    {demoMode && (
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-2.5">
+                        <div className="text-[10px] text-emerald-600 font-bold uppercase">Preferred Mode</div>
+                        <div className="text-sm font-bold text-emerald-900">{demoMode}</div>
+                      </div>
+                    )}
+                    {(req.area || req.city) && (
+                      <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
+                        <div className="text-[10px] text-slate-500 font-bold uppercase">City / Area</div>
+                        <div className="text-sm font-bold text-slate-900">{[req.area, req.city].filter(Boolean).join(', ')}</div>
+                      </div>
+                    )}
                     {demo.status === 'accepted' && req.phone && (
                       <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
                         <div className="text-[10px] text-slate-500 font-bold uppercase">Phone</div>
@@ -285,14 +303,14 @@ const TutorDemos = () => {
                     )}
                   </div>
 
-                  {/* Parent's note (if any) */}
-                  {demo.note && (
-                    <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-4">
+                  {/* Parent's optional note (only show clean messages, not old packed format) */}
+                  {cleanMessage && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <MessageSquare size={14} className="text-amber-600" />
-                        <span className="text-[10px] text-amber-600 font-bold uppercase">Parent's Message</span>
+                        <MessageSquare size={14} className="text-slate-500" />
+                        <span className="text-[10px] text-slate-500 font-bold uppercase">Parent's Note</span>
                       </div>
-                      <p className="text-sm text-amber-900">{demo.note}</p>
+                      <p className="text-sm text-slate-700">{cleanMessage}</p>
                     </div>
                   )}
 

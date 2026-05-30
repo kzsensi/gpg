@@ -53,7 +53,9 @@ const DemoModal = ({ tutor, onClose, onSuccess }) => {
         parent_id: user.id,
         tutor_id: tutor.user_id,
         status: 'pending',
-        note: `[From: ${user.user_metadata?.name || 'Parent'} | For: ${user.user_metadata?.childName || user.user_metadata?.name || 'Student'}] ${form.subject} — ${form.mode}. ${form.note}`.trim(),
+        subject: form.subject,
+        preferred_mode: form.mode,
+        note: form.note.trim() || null,
       });
       setSuccess(true);
     } catch (err) {
@@ -445,7 +447,7 @@ const TeacherSearch = () => {
                       <div className="grid grid-cols-2 gap-y-2.5 mb-5 text-sm">
                         <div className="text-slate-600 flex items-center gap-2 font-medium col-span-2">
                           <MapPin size={14} className="text-slate-400 shrink-0" />
-                          <span className="truncate">{tutor.city || 'Location not set'} • {tutor.mode || 'Online & Home'}</span>
+                          <span className="truncate">{tutor.city || 'Location not set'} • {tutor.mode === 'Both' ? 'Online / Offline' : (tutor.mode || 'Online / Offline')}</span>
                         </div>
                         {tutor.hourly_rate > 0 && (
                           <div className="text-slate-800 font-bold">

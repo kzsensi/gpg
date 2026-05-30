@@ -7,6 +7,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { uploadAvatar } from '../../lib/imageUpload';
+import { apiParents } from '../../services/api';
 
 const ParentProfile = () => {
   const { user, profile, profileComplete, refreshProfile } = useAuth();
@@ -126,6 +127,20 @@ const ParentProfile = () => {
       });
 
       if (updateError) throw updateError;
+
+      // Also write to parent_profiles table so admins and tutors can look up parent info
+      await apiParents.upsertProfile(user.id, {
+        name: formData.name,
+        phone: formData.phone,
+        city: formData.city,
+        area: formData.area,
+        state: formData.state,
+        child_name: finalChildName,
+        child_class: formData.childClass,
+        child_board: formData.childBoard,
+        child_school: formData.childSchool,
+        photo_url: user.user_metadata?.avatar_url || null,
+      });
 
       await refreshProfile();
       

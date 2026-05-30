@@ -186,11 +186,15 @@ const TutorDashboard = () => {
                 {pendingDemos.map((demo) => {
                   const req = demo.parent_requirements || {};
                   const profile = demo.parent_profiles || {};
-                  const parentNameMatch = demo.note?.match(/\[From:\s*(.*?)(?:\s*\|\s*For:.*?|)\]/);
-                  const noteParent = parentNameMatch ? parentNameMatch[1].trim() : null;
-                  const parentName = req.student_name ? `${req.student_name}'s Parent` : (profile.name || noteParent || 'Parent');
-                  const cleanNote = demo.note ? demo.note.replace(/\[From:\s*.*?\]\s*/, '') : '';
-                  const displayInfo = parentName !== 'Parent' ? `From ${parentName}` : (cleanNote ? `"${cleanNote}"` : 'From Parent');
+                  const parentDbProfile = demo.parent_profiles || {};
+                  const parentName = req.student_name
+                    ? `${req.student_name}'s Parent`
+                    : (parentDbProfile.name || profile.name || 'Parent');
+                  const demoSubject = demo.subject || req.subjects?.[0];
+                  const demoMode = demo.preferred_mode || req.mode;
+                  const displayInfo = demoSubject
+                    ? `${demoSubject}${demoMode ? ` • ${demoMode}` : ''}`
+                    : `From ${parentName}`;
                   return (
                   <div key={demo.id} className="flex gap-4 p-4 bg-white rounded-lg border border-amber-100 shadow-sm">
                      <UserAvatar

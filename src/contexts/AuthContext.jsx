@@ -130,31 +130,38 @@ export const AuthProvider = ({ children }) => {
         const hasPhone = !!(tutorData?.phone || currentUser.user_metadata?.phone);
         setProfileComplete(hasName && hasSubjects && hasCity && hasPhone);
       } else {
-        // parent
+        // parent — try to load from parent_profiles table first, fallback to metadata
         const m = currentUser.user_metadata || {};
-        const hasName = !!m.name;
-        const hasCity = !!m.city;
-        const hasPhone = !!m.phone;
-        const hasChildClass = !!m.childClass;
-        setProfileComplete(hasName && hasCity && hasPhone && hasChildClass);
-        setProfile(m);
-
-        // One-time auto-fix for legacy demo requests that are missing the name tag
-        if (hasName) {
-          supabase.from('demo_requests').select('id, note').eq('parent_id', currentUser.id).then(({ data: demos }) => {
-            if (demos && demos.length > 0) {
-              demos.forEach(demo => {
-                const hasOldFormat = demo.note?.includes('[From:') && !demo.note?.includes('| For:');
-                if (!demo.note?.includes('[From:') || hasOldFormat) {
-                  const cleanNote = demo.note ? demo.note.replace(/\[From:\s*.*?\]\s*/, '') : '';
-                  const childName = m.childName || m.name || 'Student';
-                  const newNote = `[From: ${m.name} | For: ${childName}] ${cleanNote}`.trim();
-                  supabase.from('demo_requests').update({ note: newNote }).eq('id', demo.id).then();
-                }
-              });
-            }
-          }).catch(() => {});
+        let parentDbRow = null;
+        try {
+          const { data: pRow } = await supabase
+            .from('parent_profiles')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+          parentDbRow = pRow;
+        } catch (e) {
+          console.warn('Could not fetch parent_profiles row:', e.message);
         }
+
+        // Merge DB row (preferred) with metadata fallback
+        const merged = {
+          ...m,
+          ...(parentDbRow || {}),
+          // normalise field names so components see both camelCase and snake_case
+          name: parentDbRow?.name || m.name,
+          phone: parentDbRow?.phone || m.phone,
+          city: parentDbRow?.city || m.city,
+          childName: parentDbRow?.child_name || m.childName,
+          childClass: parentDbRow?.child_class || m.childClass,
+        };
+
+        const hasName = !!merged.name;
+        const hasCity = !!merged.city;
+        const hasPhone = !!merged.phone;
+        const hasChildClass = !!merged.childClass;
+        setProfileComplete(hasName && hasCity && hasPhone && hasChildClass);
+        setProfile(merged);
       }
 
       // Auto-heal metadata role if it is out of sync or missing

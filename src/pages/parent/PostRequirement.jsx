@@ -37,6 +37,7 @@ const PostRequirement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
 
   const toggleSubject = (sub) => {
     setSelectedSubjects((prev) => prev.includes(sub) ? prev.filter((s) => s !== sub) : [...prev, sub]);
@@ -50,6 +51,24 @@ const PostRequirement = () => {
     setError(null);
     if (!formData.studentName || !formData.phone || !formData.city || !formData.area || !formData.studentClass || selectedSubjects.length === 0) {
       setError("Please fill in all required fields marked with *");
+      setShowErrors(true);
+
+      // Find first empty field and scroll to it
+      let firstEmptyId = '';
+      if (!formData.studentName) firstEmptyId = 'studentName';
+      else if (!formData.phone) firstEmptyId = 'phone';
+      else if (!formData.city) firstEmptyId = 'city';
+      else if (!formData.area) firstEmptyId = 'area';
+      else if (!formData.studentClass) firstEmptyId = 'studentClass';
+      else if (selectedSubjects.length === 0) firstEmptyId = 'subjects';
+
+      if (firstEmptyId) {
+        const el = document.getElementById(firstEmptyId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el.focus?.(), 300);
+        }
+      }
       return;
     }
 
@@ -72,6 +91,7 @@ const PostRequirement = () => {
         status: 'active'
       });
       setSuccess(true);
+      setShowErrors(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setError(err.message || 'Failed to post requirement');
@@ -130,13 +150,31 @@ const PostRequirement = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-600 mb-1.5">Parent / Student Name *</label>
-                      <input type="text" value={formData.studentName} onChange={(e) => handleInputChange('studentName', e.target.value)} placeholder="e.g., Pooja Sharma" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:border-[#0b5ed7] outline-none" />
+                      <input
+                        id="studentName"
+                        type="text"
+                        value={formData.studentName}
+                        onChange={(e) => handleInputChange('studentName', e.target.value)}
+                        placeholder="e.g., Pooja Sharma"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm text-slate-800 focus:border-[#0b5ed7] outline-none transition-all ${
+                          showErrors && !formData.studentName ? 'border-red-500 bg-red-50/50' : 'border-slate-200'
+                        }`}
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-600 mb-1.5">Mobile Number *</label>
                       <div className="flex">
                         <span className="inline-flex items-center px-3 bg-slate-50 border border-r-0 border-slate-200 rounded-l-xl text-sm text-slate-600 font-medium">+91</span>
-                        <input type="tel" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} placeholder="98765 43210" className="w-full px-4 py-2.5 rounded-r-xl border border-slate-200 text-sm text-slate-800 focus:border-[#0b5ed7] outline-none" />
+                        <input
+                          id="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          placeholder="98765 43210"
+                          className={`w-full px-4 py-2.5 rounded-r-xl border text-sm text-slate-800 focus:border-[#0b5ed7] outline-none transition-all ${
+                            showErrors && !formData.phone ? 'border-red-500 bg-red-50/50' : 'border-slate-200'
+                          }`}
+                        />
                       </div>
                     </div>
                   </div>
@@ -153,7 +191,14 @@ const PostRequirement = () => {
                     <div>
                       <label className="block text-sm font-medium text-slate-600 mb-1.5">City *</label>
                       <div className="relative">
-                        <select value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:border-[#0b5ed7] outline-none appearance-none cursor-pointer">
+                        <select
+                          id="city"
+                          value={formData.city}
+                          onChange={(e) => handleInputChange('city', e.target.value)}
+                          className={`w-full px-4 py-2.5 rounded-xl border text-sm text-slate-800 focus:border-[#0b5ed7] outline-none appearance-none cursor-pointer transition-all ${
+                            showErrors && !formData.city ? 'border-red-500 bg-red-50/50' : 'border-slate-200'
+                          }`}
+                        >
                           <option value="">Select City</option>
                           {cities.map((city) => <option key={city} value={city}>{city}</option>)}
                         </select>
@@ -162,7 +207,16 @@ const PostRequirement = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-600 mb-1.5">Area / Sector *</label>
-                      <input type="text" value={formData.area} onChange={(e) => handleInputChange('area', e.target.value)} placeholder="e.g., Sector 15" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:border-[#0b5ed7] outline-none" />
+                      <input
+                        id="area"
+                        type="text"
+                        value={formData.area}
+                        onChange={(e) => handleInputChange('area', e.target.value)}
+                        placeholder="e.g., Sector 15"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm text-slate-800 focus:border-[#0b5ed7] outline-none transition-all ${
+                          showErrors && !formData.area ? 'border-red-500 bg-red-50/50' : 'border-slate-200'
+                        }`}
+                      />
                     </div>
                   </div>
                 </div>
@@ -174,7 +228,14 @@ const PostRequirement = () => {
                     <div>
                       <label className="block text-sm font-medium text-slate-600 mb-1.5">Class / Level *</label>
                       <div className="relative">
-                        <select value={formData.studentClass} onChange={(e) => handleInputChange('studentClass', e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:border-[#0b5ed7] outline-none appearance-none cursor-pointer">
+                        <select
+                          id="studentClass"
+                          value={formData.studentClass}
+                          onChange={(e) => handleInputChange('studentClass', e.target.value)}
+                          className={`w-full px-4 py-2.5 rounded-xl border text-sm text-slate-800 focus:border-[#0b5ed7] outline-none appearance-none cursor-pointer transition-all ${
+                            showErrors && !formData.studentClass ? 'border-red-500 bg-red-50/50' : 'border-slate-200'
+                          }`}
+                        >
                           <option value="">Select Class</option>
                           {classesList.map((cls) => <option key={cls} value={cls}>{cls}</option>)}
                         </select>
@@ -193,7 +254,13 @@ const PostRequirement = () => {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-slate-600 mb-1.5">Subject(s) *</label>
-                      <div className="min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 text-sm cursor-pointer flex flex-wrap gap-2 items-center focus-within:border-[#0b5ed7] transition-all" onClick={() => setShowSubjectDropdown(!showSubjectDropdown)}>
+                      <div
+                        id="subjects"
+                        className={`min-h-[44px] px-4 py-2 rounded-xl border text-sm cursor-pointer flex flex-wrap gap-2 items-center focus-within:border-[#0b5ed7] transition-all ${
+                          showErrors && selectedSubjects.length === 0 ? 'border-red-500 bg-red-50/50' : 'border-slate-200'
+                        }`}
+                        onClick={() => setShowSubjectDropdown(!showSubjectDropdown)}
+                      >
                         {selectedSubjects.length === 0 && <span className="text-slate-400">Select subjects...</span>}
                         {selectedSubjects.map((sub) => (
                           <span key={sub} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-[#0b5ed7] text-xs font-medium rounded-lg border border-blue-100">

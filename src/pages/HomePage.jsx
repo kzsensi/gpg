@@ -56,22 +56,7 @@ const RevealBlock = ({ children, delay = '' }) => {
     );
 };
 
-// Component for the moving review cards
-const ReviewCard = ({ title, content, author, lessons, subject, img, bg, border, text, tag }) => (
-    <div className={`w-[420px] flex-shrink-0 rounded-2xl p-7 flex gap-5 border ${border} ${bg} shadow-sm hover:shadow-md transition-shadow duration-300`}>
-        <img src={img} alt={author} className="w-16 h-16 rounded-full object-cover shrink-0 bg-slate-100" />
-        <div>
-            <h4 className={`font-bold text-base mb-2 text-slate-900 leading-tight`}>
-                "{title}"
-            </h4>
-            <p className="text-slate-600 text-[15px] leading-relaxed mb-4">
-                {content}
-            </p>
-            <div className="text-sm text-slate-500 mb-1 font-medium">{author}, {lessons}</div>
-            <div className={`text-sm font-semibold ${tag}`}>{subject}</div>
-        </div>
-    </div>
-);
+
 
 const HomePage = () => {
     const { isAuthenticated, role } = useAuth();
@@ -315,45 +300,6 @@ const HomePage = () => {
                 </section>
             </RevealBlock>
 
-            {/* REVIEWS SECTION */}
-            <RevealBlock>
-                <section className="py-24 bg-[#F8FAFC] border-b border-slate-200 overflow-hidden">
-                    <div className="text-center max-w-2xl mx-auto mb-16 px-4">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-4">What parents are saying</h2>
-                        <p className="text-slate-600 text-lg">Hear from parents who found the right teacher on our platform.</p>
-                    </div>
-
-                    <div className="marquee-container mb-6">
-                        <div className="marquee-content gap-6 px-3">
-                            {[1, 2, 3, 4].map((set) => (
-                                <React.Fragment key={`set1-${set}`}>
-                                    <ReviewCard
-                                        bg="bg-white" border="border-slate-200" text="text-slate-900" tag="text-[#0b5ed7]"
-                                        title="Very patient teacher"
-                                        content="Miss Jiya has been great. She is knowledgeable and patient. All the lessons are thoughtfully prepared and my son enjoys them."
-                                        author="Shreyas.P" lessons="16 lessons" subject="English Tutor"
-                                        img="https://images.unsplash.com/photo-1531123897727-8f129e1bf98c?auto=format&fit=crop&w=100&h=100&q=80"
-                                    />
-                                    <ReviewCard
-                                        bg="bg-white" border="border-slate-200" text="text-slate-900" tag="text-[#0b5ed7]"
-                                        title="Significant progress"
-                                        content="Every lesson has been helpful, setting my daughter up for real progress. The teacher is easy to talk to and very professional."
-                                        author="Kavya.S" lessons="19 lessons" subject="Hindi Tutor"
-                                        img="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&h=100&q=80"
-                                    />
-                                    <ReviewCard
-                                        bg="bg-white" border="border-slate-200" text="text-slate-900" tag="text-[#0b5ed7]"
-                                        title="Better grades"
-                                        content="My son was struggling with math, but after a few weeks with his new tutor, his confidence and grades have improved."
-                                        author="Anita.D" lessons="8 lessons" subject="Maths Tutor"
-                                        img="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&h=100&q=80"
-                                    />
-                                </React.Fragment>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            </RevealBlock>
 
             {/* FOUNDER & LIVE LEADS */}
             <RevealBlock>

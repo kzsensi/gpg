@@ -106,7 +106,9 @@ const TutorCard = ({ tutor, onVerify, onToggleVisible, onDelete, loading }) => {
         {/* Mode Badge */}
         {tutor.mode && (
           <div className="mb-4">
-            <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">{tutor.mode}</span>
+            <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">
+              {tutor.mode === 'Both' ? 'Online / Offline' : tutor.mode}
+            </span>
           </div>
         )}
 

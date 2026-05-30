@@ -10,7 +10,7 @@ import {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ totalTutors: 0, activeRequirements: 0, pendingDemos: 0 });
+  const [stats, setStats] = useState({ totalTutors: 0, totalParents: 0, activeRequirements: 0, pendingDemos: 0 });
   const [recentTutors, setRecentTutors] = useState([]);
   const [recentRequirements, setRecentRequirements] = useState([]);
   const [unverifiedTutors, setUnverifiedTutors] = useState([]);
@@ -46,13 +46,18 @@ const AdminDashboard = () => {
       link: '/admin/tutors',
     },
     {
+      label: 'Registered Parents', value: stats.totalParents,
+      icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100',
+      link: '/admin/parents',
+    },
+    {
       label: 'Unverified', value: unverifiedTutors.length,
       icon: ShieldAlert, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100',
       link: '/admin/tutors', urgent: unverifiedTutors.length > 0,
     },
     {
       label: 'Active Requirements', value: stats.activeRequirements,
-      icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100',
+      icon: FileText, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100',
       link: '/admin/parents',
     },
     {
@@ -129,7 +134,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {statCards.map((stat, i) => (
             <button
               key={i}

@@ -65,7 +65,9 @@ const DemoModal = ({ tutor, onClose }) => {
         parent_id: user.id,
         tutor_id: tutor.user_id,
         status: 'pending',
-        note: `[From: ${user.user_metadata?.name || 'Parent'} | For: ${user.user_metadata?.childName || user.user_metadata?.name || 'Student'}] ${form.subject} — ${form.mode}. ${form.note}`.trim(),
+        subject: form.subject,
+        preferred_mode: form.mode,
+        note: form.note.trim() || null,
       });
       setSuccess(true);
     } catch (err) {
@@ -282,7 +284,9 @@ const TeacherProfile = () => {
                     {tutor.mode && (
                       <div className="flex items-center gap-1.5 text-slate-600">
                         {tutor.mode === 'Online' ? <MonitorPlay size={16} className="text-slate-400" /> : <Home size={16} className="text-slate-400" />}
-                        <span className="font-medium text-slate-700">{tutor.mode}</span>
+                        <span className="font-medium text-slate-700">
+                          {tutor.mode === 'Both' ? 'Online / Offline' : tutor.mode}
+                        </span>
                       </div>
                     )}
                   </div>

@@ -13,7 +13,18 @@
  */
 
 import { supabase } from '../lib/supabase';
-import { PAGE_SIZE } from './constants';
+import { PAGE_SIZE, SUBJECTS } from './constants';
+
+// Helper to map search query to database subjects case-insensitively
+function getStandardSubject(query) {
+  if (!query) return query;
+  const trimmed = query.trim().toLowerCase();
+  const match = SUBJECTS.find(sub => sub.toLowerCase() === trimmed);
+  if (match) return match;
+  const partialMatch = SUBJECTS.find(sub => sub.toLowerCase().includes(trimmed));
+  if (partialMatch) return partialMatch;
+  return query.trim().replace(/\b\w/g, c => c.toUpperCase());
+}
 
 // ==========================================
 // 1. TUTOR PROFILES
@@ -30,7 +41,8 @@ export const apiTutors = {
       .eq('is_visible', true);
 
     if (subject && subject !== 'All Subjects') {
-      query = query.contains('subjects', [subject]);
+      const normalisedSubject = getStandardSubject(subject);
+      query = query.contains('subjects', [normalisedSubject]);
     }
     if (city && city !== 'All Locations') {
       query = query.ilike('city', `%${city}%`);
@@ -148,6 +160,39 @@ export const apiRequirements = {
 };
 
 // ==========================================
+// 2b. PARENT PROFILES
+// ==========================================
+
+export const apiParents = {
+  /**
+   * Create or update a parent's profile row in parent_profiles table.
+   * Called every time the parent saves their profile.
+   */
+  upsertProfile: async (userId, profileData) => {
+    const { data, error } = await supabase
+      .from('parent_profiles')
+      .upsert({ user_id: userId, ...profileData, updated_at: new Date() }, { onConflict: 'user_id' })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  /**
+   * Fetch a single parent's profile row (for their own profile page).
+   */
+  getByUser: async (userId) => {
+    const { data, error } = await supabase
+      .from('parent_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+};
+
+// ==========================================
 // 3. DEMO REQUESTS
 // ==========================================
 
@@ -171,8 +216,10 @@ export const apiDemos = {
    */
   getByUser: async (userId, role) => {
     const column = role === 'parent' ? 'parent_id' : 'tutor_id';
-    
-    // Join tutor_profiles so parent can see tutor name, and parent_requirements so tutor can see requirement details
+
+    // NOTE: parent_profiles is NOT joined via Supabase select because there is no direct FK
+    // between demo_requests.parent_id and parent_profiles.user_id in the schema.
+    // We enrich with parent profile data via a separate query below.
     const queryPromise = supabase
       .from('demo_requests')
       .select(`
@@ -188,8 +235,23 @@ export const apiDemos = {
     );
 
     const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
-
     if (error) throw new Error(error.message);
+
+    // Enrich each demo with parent_profiles data (separate query, no FK required)
+    if (data && data.length > 0) {
+      const parentIds = [...new Set(data.map(d => d.parent_id).filter(Boolean))];
+      if (parentIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('parent_profiles')
+          .select('user_id, name, phone, city, photo_url')
+          .in('user_id', parentIds);
+        if (profiles) {
+          const map = Object.fromEntries(profiles.map(p => [p.user_id, p]));
+          data.forEach(d => { d.parent_profiles = map[d.parent_id] || null; });
+        }
+      }
+    }
+
     return { data, error };
   },
 
@@ -454,6 +516,33 @@ export const apiAdmin = {
       .select('*')
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
+
+    // Enrich with parent_profiles via separate query (no FK between tables)
+    if (data && data.length > 0) {
+      const parentIds = [...new Set(data.map(r => r.parent_id).filter(Boolean))];
+      if (parentIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('parent_profiles')
+          .select('user_id, name, phone, photo_url')
+          .in('user_id', parentIds);
+        if (profiles) {
+          const map = Object.fromEntries(profiles.map(p => [p.user_id, p]));
+          data.forEach(r => { r.parent_profiles = map[r.parent_id] || null; });
+        }
+      }
+    }
+    return data;
+  },
+
+  /**
+   * Get ALL registered parents (from parent_profiles table) — Admin only
+   */
+  getAllParents: async () => {
+    const { data, error } = await supabase
+      .from('parent_profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
     return data;
   },
 
@@ -495,6 +584,21 @@ export const apiAdmin = {
       `)
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
+
+    // Enrich with parent_profiles via separate query (no FK between tables)
+    if (data && data.length > 0) {
+      const parentIds = [...new Set(data.map(d => d.parent_id).filter(Boolean))];
+      if (parentIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('parent_profiles')
+          .select('user_id, name, phone, city')
+          .in('user_id', parentIds);
+        if (profiles) {
+          const map = Object.fromEntries(profiles.map(p => [p.user_id, p]));
+          data.forEach(d => { d.parent_profiles = map[d.parent_id] || null; });
+        }
+      }
+    }
     return data;
   },
 
@@ -527,13 +631,15 @@ export const apiAdmin = {
    * Get platform-wide stats: total tutors, parents, active requirements, pending demos
    */
   getStats: async () => {
-    const [tutorsRes, requirementsRes, pendingDemosRes] = await Promise.all([
+    const [tutorsRes, parentsRes, requirementsRes, pendingDemosRes] = await Promise.all([
       supabase.from('tutor_profiles').select('*', { count: 'exact', head: true }),
+      supabase.from('parent_profiles').select('*', { count: 'exact', head: true }),
       supabase.from('parent_requirements').select('*', { count: 'exact', head: true }).eq('status', 'active'),
       supabase.from('demo_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     ]);
     return {
       totalTutors: tutorsRes.count || 0,
+      totalParents: parentsRes.count || 0,
       activeRequirements: requirementsRes.count || 0,
       pendingDemos: pendingDemosRes.count || 0,
     };

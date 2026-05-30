@@ -1,11 +1,40 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { GraduationCap, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  LogOut, LayoutDashboard, Menu, X, HelpCircle,
+  PlusCircle, Search, Users, PlayCircle, MessageCircle,
+  User, Briefcase, Star, Clock
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import logoImg from '../assets/logo.png';
 
+const parentLinks = [
+  { label: 'Dashboard', path: '/parent/dashboard', icon: LayoutDashboard },
+  { label: 'My Requirements', path: '/parent/requirements', icon: PlusCircle },
+  { label: 'Find Teachers', path: '/search', icon: Search },
+  { label: 'Teacher Matches', path: '/parent/matches', icon: Users },
+  { label: 'Upcoming Demos', path: '/parent/demos', icon: PlayCircle },
+  { label: 'Messages', path: '/parent/messages', icon: MessageCircle },
+];
+
+const tutorLinks = [
+  { label: 'Dashboard', path: '/tutor/dashboard', icon: LayoutDashboard },
+  { label: 'My Profile', path: '/tutor/profile', icon: User },
+  { label: 'My Leads', path: '/tutor/leads', icon: Briefcase },
+  { label: 'Demo Sessions', path: '/tutor/demos', icon: PlayCircle },
+  { label: 'My Students', path: '/tutor/students', icon: Users },
+  { label: 'Messages', path: '/tutor/messages', icon: MessageCircle },
+  { label: 'Reviews', path: '/tutor/reviews', icon: Star },
+  { label: 'Availability', path: '/tutor/availability', icon: Clock },
+];
+
+const adminLinks = [
+  { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+];
+
 const TopNavigation = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, role, isAuthenticated, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -19,139 +48,197 @@ const TopNavigation = () => {
   const displayName = user?.user_metadata?.name || 'User';
   const initial = displayName.charAt(0).toUpperCase();
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.photo_url || '';
-  const dashboardPath = role === 'parent' ? '/parent/dashboard' : (role === 'admin' ? '/admin/dashboard' : '/tutor/dashboard');
   const roleLabel = role === 'parent' ? 'Parent' : (role === 'admin' ? 'Admin' : 'Tutor');
 
   const closeMenu = () => setMobileMenuOpen(false);
 
-  const navLinks = [];
-  if (!role || role === 'parent') {
-    navLinks.push({ label: 'Find a Teacher', path: '/search' });
-    navLinks.push({ label: 'Post Requirement', path: '/parent/post-requirement' });
-  } else if (role === 'tutor') {
-    navLinks.push({ label: 'Go to Dashboard', path: '/tutor/dashboard' });
-  } else if (role === 'admin') {
-    navLinks.push({ label: 'Go to Dashboard', path: '/admin/dashboard' });
-  }
+  // Pick the right link set based on role
+  const navLinks = role === 'tutor' ? tutorLinks
+    : role === 'admin' ? adminLinks
+    : role === 'parent' ? parentLinks
+    : [];
+
+  const isActive = (path) =>
+    location.pathname === path || location.pathname.startsWith(path + '/');
 
   return (
     <header className="sticky top-0 w-full z-50 bg-white border-b border-slate-200">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 sm:h-20 relative">
-          
-          {/* Logo (Starts from left side on all screens) */}
-          <div 
-            className="flex items-center gap-2.5 cursor-pointer z-10 shrink-0" 
+        <div className="flex justify-between items-center h-16 sm:h-20">
+
+          {/* Logo */}
+          <div
+            className="flex items-center gap-2.5 cursor-pointer shrink-0"
             onClick={() => { closeMenu(); navigate('/'); }}
           >
             <img src={logoImg} alt="GharPeGyan Logo" style={{ height: '36px', width: 'auto', maxWidth: '200px' }} className="object-contain" />
           </div>
 
-          {/* Center Links (Desktop only) */}
-          <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-            {navLinks.map((link, idx) => (
-              <button 
-                key={idx}
-                onClick={() => navigate(link.path)} 
-                className="text-slate-600 hover:text-[#0b5ed7] font-semibold text-[15px] transition-colors cursor-pointer"
-              >
-                {link.label}
-              </button>
-            ))}
+          {/* === Desktop Navigation === */}
+          <div className="hidden lg:flex items-center gap-1 flex-1 justify-center mx-6">
+            {isAuthenticated && navLinks.map((link) => {
+              const active = isActive(link.path);
+              return (
+                <button
+                  key={link.path}
+                  onClick={() => navigate(link.path)}
+                  className={`px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors cursor-pointer whitespace-nowrap ${
+                    active
+                      ? 'text-[#0b5ed7] bg-blue-50'
+                      : 'text-slate-600 hover:text-[#0b5ed7] hover:bg-slate-50'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Right side container (Desktop Auth / Mobile Hamburger) */}
-          <div className="flex items-center gap-4 z-10">
-            {/* Desktop Auth Section */}
-            <div className="hidden md:flex items-center gap-4">
-              {isAuthenticated ? (
-                <>
-                  <button
-                    onClick={() => navigate(dashboardPath)}
-                    className="flex items-center gap-2 text-slate-700 font-medium px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-sm cursor-pointer"
-                  >
-                    <LayoutDashboard size={16} />
-                    Dashboard
-                  </button>
-
-                  <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm overflow-hidden border border-slate-200">
-                      {avatarUrl ? (
-                        <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-                      ) : (
-                        initial
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900 leading-none">{displayName}</p>
-                      <p className="text-[12px] text-slate-500 font-medium mt-1">{roleLabel}</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleLogout}
-                    className="ml-2 p-2.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                    title="Logout"
-                  >
-                    <LogOut size={18} />
-                  </button>
-                </>
-              ) : (
+          {/* === Desktop Right Section === */}
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
+            {isAuthenticated ? (
+              <>
+                {/* Help icon */}
                 <button
-                  onClick={() => navigate('/login')}
-                  className="bg-[#0b5ed7] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm cursor-pointer"
+                  onClick={() => navigate('/help')}
+                  className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                    isActive('/help')
+                      ? 'text-[#0b5ed7] bg-blue-50'
+                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                  }`}
+                  title="Help & Support"
                 >
-                  Login / Sign Up
+                  <HelpCircle size={20} />
                 </button>
-              )}
-            </div>
 
-            {/* Mobile Menu Button (Right side on mobile) */}
-            <div className="flex items-center md:hidden">
+                {/* Divider */}
+                <div className="w-px h-8 bg-slate-200" />
+
+                {/* User avatar + name */}
+                <div
+                  className="flex items-center gap-2.5 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-slate-50 transition-colors"
+                  onClick={() => navigate(
+                    role === 'parent' ? '/parent/dashboard' :
+                    role === 'admin' ? '/admin/dashboard' :
+                    '/tutor/dashboard'
+                  )}
+                >
+                  <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm overflow-hidden border border-slate-200">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      initial
+                    )}
+                  </div>
+                  <div className="hidden xl:block">
+                    <p className="text-sm font-bold text-slate-900 leading-none">{displayName}</p>
+                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">{roleLabel}</p>
+                  </div>
+                </div>
+
+                {/* Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                  title="Logout"
+                >
+                  <LogOut size={18} />
+                </button>
+              </>
+            ) : (
               <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                onClick={() => navigate('/login')}
+                className="bg-[#0b5ed7] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm cursor-pointer"
               >
-                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                Login / Sign Up
               </button>
-            </div>
+            )}
+          </div>
+
+          {/* === Mobile Hamburger === */}
+          <div className="flex items-center lg:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* === Mobile Menu Dropdown === */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 absolute w-full shadow-lg">
+        <div className="lg:hidden bg-white border-t border-slate-100 absolute w-full shadow-lg z-50" style={{ maxHeight: 'calc(100vh - 64px)', overflowY: 'auto' }}>
           <div className="px-4 py-3 space-y-1">
-            {navLinks.map((link, idx) => (
-              <button 
-                key={idx}
-                onClick={() => { closeMenu(); navigate(link.path); }} 
-                className="block w-full text-left px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0b5ed7] rounded-lg"
-              >
-                {link.label}
-              </button>
-            ))}
-            
-            {isAuthenticated ? (
-              <>
-                <div className="h-px bg-slate-100 my-2"></div>
+
+            {/* If logged in, show user info at top */}
+            {isAuthenticated && (
+              <div className="flex items-center gap-3 px-3 py-3 mb-2 bg-slate-50 rounded-xl">
+                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-bold text-sm overflow-hidden border border-slate-200">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    initial
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900">{displayName}</p>
+                  <p className="text-[12px] text-slate-500 font-medium">{roleLabel}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation links */}
+            {isAuthenticated && navLinks.map((link) => {
+              const active = isActive(link.path);
+              const Icon = link.icon;
+              return (
                 <button
-                  onClick={() => { closeMenu(); navigate(dashboardPath); }}
-                  className="block w-full text-left px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2"
+                  key={link.path}
+                  onClick={() => { closeMenu(); navigate(link.path); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-[15px] font-medium rounded-lg transition-colors ${
+                    active
+                      ? 'bg-blue-50 text-[#0b5ed7]'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-[#0b5ed7]'
+                  }`}
                 >
-                  <LayoutDashboard size={18} /> Dashboard
+                  <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+                  {link.label}
                 </button>
+              );
+            })}
+
+            {/* Help & Support for logged-in users */}
+            {isAuthenticated && (
+              <>
+                <button
+                  onClick={() => { closeMenu(); navigate('/help'); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-[15px] font-medium rounded-lg transition-colors ${
+                    isActive('/help')
+                      ? 'bg-blue-50 text-[#0b5ed7]'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-[#0b5ed7]'
+                  }`}
+                >
+                  <HelpCircle size={18} strokeWidth={isActive('/help') ? 2.5 : 2} />
+                  Help & Support
+                </button>
+
+                <div className="h-px bg-slate-100 my-2" />
+
                 <button
                   onClick={() => { closeMenu(); handleLogout(); }}
-                  className="block w-full text-left px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-[15px] font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
-                  <LogOut size={18} /> Logout
+                  <LogOut size={18} />
+                  Logout
                 </button>
               </>
-            ) : (
+            )}
+
+            {/* Not logged in — just show Login */}
+            {!isAuthenticated && (
               <>
-                <div className="h-px bg-slate-100 my-2"></div>
                 <button
                   onClick={() => { closeMenu(); navigate('/login'); }}
                   className="block w-full text-center px-4 py-3 text-base font-bold text-white bg-[#0b5ed7] rounded-lg"

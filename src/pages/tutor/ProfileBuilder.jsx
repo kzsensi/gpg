@@ -468,7 +468,7 @@ const ProfileBuilder = () => {
               <div className="text-sm text-slate-600 space-y-1.5">
                 <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Name:</span>{formData.name || '—'}</div>
                 <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">City:</span>{formData.city || '—'}</div>
-                <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Mode:</span>{formData.mode || '—'}</div>
+                <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Mode:</span>{formData.mode === 'Both' ? 'Online / Offline' : (formData.mode || '—')}</div>
                 <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Education:</span>{formData.education || '—'}</div>
                 <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Subjects:</span>{selectedSubjects.length > 0 ? selectedSubjects.join(', ') : '—'}</div>
                 <div className="flex gap-2"><span className="font-medium text-slate-800 w-28">Boards:</span>{selectedBoards.length > 0 ? selectedBoards.join(', ') : '—'}</div>
