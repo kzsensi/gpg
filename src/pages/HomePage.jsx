@@ -131,14 +131,14 @@ const HomePage = () => {
 
                             <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
                                 {(!role || role === 'parent') && (
-                                    <>
-                                        <button onClick={() => authNavigate('/search')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                            Find a Teacher <ArrowRight size={18} />
-                                        </button>
-                                        <button onClick={() => navigate('/login')} className="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                            Join as Teacher <GraduationCap size={18} />
-                                        </button>
-                                    </>
+                                    <button onClick={() => authNavigate('/search')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                        Find a Teacher <ArrowRight size={18} />
+                                    </button>
+                                )}
+                                {!isAuthenticated && (
+                                    <button onClick={() => navigate('/login')} className="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                        Join as Teacher <GraduationCap size={18} />
+                                    </button>
                                 )}
                                 {role === 'tutor' && (
                                     <button onClick={() => navigate('/tutor/dashboard')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">

@@ -122,9 +122,43 @@ const LoginPage = () => {
         }
         
         if (!error && data?.user) {
-          // No need to navigate here directly. The useEffect above will detect
-          // the session change, wait for AuthContext to resolve the role, and
-          // redirect the user to the correct dashboard.
+          // Validate the user's actual role against the selected role on the form
+          const userMeta = data.user.user_metadata;
+          const actualRole = userMeta?.role;
+
+          // Check if there's a tutor_profiles row for this user (the authoritative source)
+          let hasTutorProfile = false;
+          try {
+            const { data: tp } = await supabase
+              .from('tutor_profiles')
+              .select('user_id')
+              .eq('user_id', data.user.id)
+              .maybeSingle();
+            if (tp) hasTutorProfile = true;
+          } catch (_) {}
+
+          const isActuallyTutor = hasTutorProfile || actualRole === 'tutor';
+          const isActuallyParent = !isActuallyTutor && (actualRole === 'parent' || !actualRole);
+          const isAdmin = actualRole === 'admin' || data.user.app_metadata?.role === 'admin';
+
+          // Admins can log in from any tab
+          if (!isAdmin) {
+            if (role === 'parent' && isActuallyTutor) {
+              // Tutor trying to log in via parent section
+              await supabase.auth.signOut({ scope: 'local' });
+              setAuthError('This account is registered as a Teacher. Please select "Teacher / Tutor" and try again.');
+              setLoading(false);
+              return;
+            }
+            if (role === 'tutor' && isActuallyParent) {
+              // Parent trying to log in via tutor section
+              await supabase.auth.signOut({ scope: 'local' });
+              setAuthError('This account is registered as a Parent. Please select "Parent / Student" and try again.');
+              setLoading(false);
+              return;
+            }
+          }
+          // Role matches — the useEffect above will detect the session and redirect.
         }
       }
     } catch (err) {
