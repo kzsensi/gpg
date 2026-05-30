@@ -16,6 +16,9 @@ import puneImg from '../assets/pune.png';
 import hyderabadImg from '../assets/hyderabad.png';
 import logoImg from '../assets/logo.png';
 import verifiedImg from '../assets/verified-teachers.png';
+import stepPostImg from '../assets/step-post.png';
+import stepMatchImg from '../assets/step-match.png';
+import stepDemoImg from '../assets/step-demo.png';
 
 // Custom Hook for Scroll Reveal Animation
 const useScrollReveal = () => {
@@ -238,6 +241,48 @@ const HomePage = () => {
                                 <span className="text-[15px] font-semibold text-slate-800">{cat.name}</span>
                             </button>
                         ))}
+                    </div>
+                </section>
+            </RevealBlock>
+
+            {/* HOW IT WORKS */}
+            <RevealBlock>
+                <section className="py-24 w-full bg-white border-b border-slate-200">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">How GharPeGyan works</h2>
+                        <p className="text-slate-500 text-lg mb-14 max-w-xl">Find the right tutor in three simple steps.</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {/* Step 1 */}
+                            <div className="group rounded-2xl border border-slate-200 bg-white p-6 flex flex-col transition-shadow duration-300 hover:shadow-lg">
+                                <div className="w-11 h-11 rounded-lg bg-sky-100 text-[#0b5ed7] font-bold text-lg flex items-center justify-center mb-5">1</div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-2">Post your requirement.</h3>
+                                <p className="text-slate-500 text-[15px] leading-relaxed mb-6">Fill a quick form with class, subject, budget and preferred mode.</p>
+                                <div className="mt-auto rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
+                                    <img src={stepPostImg} alt="Post requirement" className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" />
+                                </div>
+                            </div>
+
+                            {/* Step 2 */}
+                            <div className="group rounded-2xl border border-slate-200 bg-white p-6 flex flex-col transition-shadow duration-300 hover:shadow-lg">
+                                <div className="w-11 h-11 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-lg flex items-center justify-center mb-5">2</div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-2">Get verified matches.</h3>
+                                <p className="text-slate-500 text-[15px] leading-relaxed mb-6">Receive profiles of verified local tutors that match your criteria.</p>
+                                <div className="mt-auto rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
+                                    <img src={stepMatchImg} alt="Get matches" className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" />
+                                </div>
+                            </div>
+
+                            {/* Step 3 */}
+                            <div className="group rounded-2xl border border-slate-200 bg-white p-6 flex flex-col transition-shadow duration-300 hover:shadow-lg">
+                                <div className="w-11 h-11 rounded-lg bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mb-5">3</div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-2">Start with a free demo.</h3>
+                                <p className="text-slate-500 text-[15px] leading-relaxed mb-6">Take a trial class to make sure it's the perfect fit before committing.</p>
+                                <div className="mt-auto rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
+                                    <img src={stepDemoImg} alt="Free demo class" className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </RevealBlock>
