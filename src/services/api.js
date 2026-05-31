@@ -156,6 +156,20 @@ export const apiRequirements = {
     const { data, error } = await Promise.race([query, timeoutPromise]);
     if (error) throw new Error(error.message);
     return { data, error };
+  },
+
+  /**
+   * Update requirement status (e.g. parent closes a requirement)
+   */
+  updateStatus: async (id, status) => {
+    const { data, error } = await supabase
+      .from('parent_requirements')
+      .update({ status, updated_at: new Date() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
   }
 };
 
@@ -223,7 +237,7 @@ export const apiDemos = {
     const queryPromise = supabase
       .from('demo_requests')
       .select(`
-        id, parent_id, tutor_id, status, note, subject, preferred_mode, scheduled_at, created_at, is_live,
+        id, parent_id, tutor_id, requirement_id, status, note, subject, preferred_mode, scheduled_at, created_at, is_live,
         tutor_profiles(name, city, subjects, photo_url),
         parent_requirements(student_name, subjects, city, area, class_level, mode)
       `)

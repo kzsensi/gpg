@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
-import { apiDemos } from '../../services/api';
+import { apiDemos, apiRequirements } from '../../services/api';
 import { PlayCircle, Clock, CheckCircle2, Calendar, Video, X, User, MapPin, BookOpen, Phone, Link as LinkIcon, AlertCircle, ExternalLink, MessageSquare } from 'lucide-react';
 
 const formatDate = (date) => {
@@ -154,6 +154,20 @@ const TutorDemos = () => {
   const handleUpdateStatus = async (demoId, newStatus) => {
     try {
       await apiDemos.updateStatus(demoId, newStatus);
+
+      // Auto-close the linked requirement when tutor approves hire
+      if (newStatus === 'hired') {
+        const demo = demos.find(d => d.id === demoId);
+        if (demo?.requirement_id) {
+          try {
+            await apiRequirements.updateStatus(demo.requirement_id, 'closed');
+          } catch (e) {
+            // Don't block the hire if requirement close fails (e.g. RLS)
+            console.warn('Could not auto-close requirement:', e.message);
+          }
+        }
+      }
+
       fetchDemos();
     } catch (err) {
       alert('Failed to update status: ' + err.message);

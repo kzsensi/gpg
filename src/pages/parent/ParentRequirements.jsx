@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiRequirements, apiDemos } from '../../services/api';
-import { BookMarked, PlusCircle, CheckCircle2, User, PlayCircle, MapPin, Star, AlertCircle } from 'lucide-react';
+import { BookMarked, PlusCircle, CheckCircle2, User, PlayCircle, MapPin, Star, AlertCircle, XCircle } from 'lucide-react';
 
 const ParentRequirements = () => {
   const { user } = useAuth();
@@ -12,6 +12,7 @@ const ParentRequirements = () => {
   const [demoRequests, setDemoRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
+  const [closingId, setClosingId] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -42,6 +43,20 @@ const ParentRequirements = () => {
       console.error("Failed to accept tutor:", error);
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const handleCloseRequirement = async (reqId) => {
+    if (!window.confirm('Are you sure you want to close this requirement? Tutors will no longer be able to apply.')) return;
+    setClosingId(reqId);
+    try {
+      await apiRequirements.updateStatus(reqId, 'closed');
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to close requirement:", error);
+      alert('Failed to close requirement: ' + error.message);
+    } finally {
+      setClosingId(null);
     }
   };
 
@@ -92,9 +107,21 @@ const ParentRequirements = () => {
                       <h3 className="text-lg font-bold text-slate-900 mb-1">{req.class_level} • {req.subjects?.join(', ')}</h3>
                       <p className="text-sm text-slate-500 font-medium flex items-center gap-1.5"><MapPin size={14}/> {req.area}, {req.city} • {req.mode}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${req.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-500'}`}>
-                      {req.status === 'active' ? 'Live' : 'Closed'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${req.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-500'}`}>
+                        {req.status === 'active' ? 'Live' : 'Closed'}
+                      </span>
+                      {req.status === 'active' && (
+                        <button
+                          onClick={() => handleCloseRequirement(req.id)}
+                          disabled={closingId === req.id}
+                          className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-colors disabled:opacity-50"
+                        >
+                          {closingId === req.id ? <div className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin" /> : <XCircle size={12} />}
+                          Close
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="p-6">

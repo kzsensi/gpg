@@ -21,7 +21,8 @@ const timeAgo = (date) => {
 
 const LeadInbox = () => {
   const { user } = useAuth();
-  const [leads, setLeads] = useState([]);
+  const [allLeads, setAllLeads] = useState([]);       // All active requirements
+  const [tutorDemos, setTutorDemos] = useState([]);    // All demos this tutor has
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -33,10 +34,13 @@ const LeadInbox = () => {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const { data } = await apiRequirements.getActiveLeads();
-      // Wait, we also need to know which ones the tutor is already "interested" in.
-      // For now, we will fetch all active leads.
-      setLeads(data || []);
+      // Fetch both: all active leads AND this tutor's existing demos
+      const [leadsRes, demosRes] = await Promise.all([
+        apiRequirements.getActiveLeads(),
+        apiDemos.getByUser(user.id, 'tutor')
+      ]);
+      setAllLeads(leadsRes.data || []);
+      setTutorDemos(demosRes.data || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -48,6 +52,33 @@ const LeadInbox = () => {
     if (user) fetchLeads();
   }, [user]);
 
+  // Build a map of requirement_id → demo status for this tutor
+  const demosByRequirement = {};
+  tutorDemos.forEach(demo => {
+    if (demo.requirement_id) {
+      // Keep the most relevant status (in case multiple demos exist for same requirement)
+      demosByRequirement[demo.requirement_id] = demo.status;
+    }
+  });
+
+  // Split leads into tabs based on whether tutor has already responded
+  const newLeads = allLeads.filter(lead => !demosByRequirement[lead.id]);
+  const interestedLeads = allLeads.filter(lead => demosByRequirement[lead.id] === 'pending');
+  const contactedLeads = allLeads.filter(lead => ['accepted', 'confirmed'].includes(demosByRequirement[lead.id]));
+  const closedLeads = allLeads.filter(lead => ['completed', 'hired', 'hiring_requested', 'declined'].includes(demosByRequirement[lead.id]));
+
+  // Pick which leads to show based on active tab
+  const getDisplayLeads = () => {
+    switch (activeTab) {
+      case 'interested': return interestedLeads;
+      case 'contacted': return contactedLeads;
+      case 'closed': return closedLeads;
+      default: return newLeads;
+    }
+  };
+
+  const displayLeads = getDisplayLeads();
+
   const handleAcceptLead = async (lead) => {
     setProcessingId(lead.id);
     setSuccessId(null);
@@ -56,10 +87,13 @@ const LeadInbox = () => {
         parent_id: lead.parent_id,
         tutor_id: user.id,
         requirement_id: lead.id,
+        subject: lead.subjects?.[0] || null,
+        preferred_mode: lead.mode || null,
         status: 'pending' // 'pending' means Tutor is interested but Parent hasn't accepted yet
       });
       setSuccessId(lead.id);
-      setTimeout(() => setLeads(prev => prev.filter(l => l.id !== lead.id)), 1500);
+      // Re-fetch so the lead moves from New to Interested tab
+      setTimeout(() => fetchLeads(), 1500);
     } catch (err) {
       setError(err.message || 'Failed to express interest');
     } finally {
@@ -69,7 +103,34 @@ const LeadInbox = () => {
 
   const handleRejectLead = (leadId) => {
       // Just visually remove it from the 'new' list for this session
-      setLeads(prev => prev.filter(l => l.id !== leadId));
+      setAllLeads(prev => prev.filter(l => l.id !== leadId));
+  };
+
+  // Get the status badge for non-new tabs
+  const getStatusBadge = (leadId) => {
+    const status = demosByRequirement[leadId];
+    switch (status) {
+      case 'pending':
+        return <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100">Interest Sent</span>;
+      case 'accepted':
+      case 'confirmed':
+        return <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">Contacted</span>;
+      case 'hired':
+        return <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">Hired</span>;
+      case 'declined':
+        return <span className="text-[11px] font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-md border border-red-100">Declined</span>;
+      case 'completed':
+        return <span className="text-[11px] font-bold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">Completed</span>;
+      default:
+        return <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">New Lead</span>;
+    }
+  };
+
+  const emptyMessages = {
+    new: { title: 'No new leads', desc: 'There are currently no active requirements in your area.' },
+    interested: { title: 'No interested leads', desc: 'Leads you express interest in will appear here.' },
+    contacted: { title: 'No contacted leads', desc: 'Leads where the parent has accepted your interest will appear here.' },
+    closed: { title: 'No closed leads', desc: 'Completed or declined leads will appear here.' },
   };
 
   return (
@@ -79,10 +140,10 @@ const LeadInbox = () => {
 
         {/* Tabs */}
         <div className="flex items-center gap-6 border-b border-slate-200 mb-8">
-            <button className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'new' ? 'border-[#0b5ed7] text-[#0b5ed7]' : 'border-transparent text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('new')}>New ({leads.length})</button>
-            <button className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'interested' ? 'border-[#0b5ed7] text-[#0b5ed7]' : 'border-transparent text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('interested')}>Interested (0)</button>
-            <button className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'contacted' ? 'border-[#0b5ed7] text-[#0b5ed7]' : 'border-transparent text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('contacted')}>Contacted (0)</button>
-            <button className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'closed' ? 'border-[#0b5ed7] text-[#0b5ed7]' : 'border-transparent text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('closed')}>Closed (0)</button>
+            <button className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'new' ? 'border-[#0b5ed7] text-[#0b5ed7]' : 'border-transparent text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('new')}>New ({newLeads.length})</button>
+            <button className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'interested' ? 'border-[#0b5ed7] text-[#0b5ed7]' : 'border-transparent text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('interested')}>Interested ({interestedLeads.length})</button>
+            <button className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'contacted' ? 'border-[#0b5ed7] text-[#0b5ed7]' : 'border-transparent text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('contacted')}>Contacted ({contactedLeads.length})</button>
+            <button className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'closed' ? 'border-[#0b5ed7] text-[#0b5ed7]' : 'border-transparent text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('closed')}>Closed ({closedLeads.length})</button>
         </div>
 
         {error && (
@@ -97,10 +158,11 @@ const LeadInbox = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {leads.map((lead) => {
+            {displayLeads.map((lead) => {
               const datePosted = new Date(lead.created_at);
               const formattedDate = new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).format(datePosted);
               const isExpanded = expandedId === lead.id;
+              const isNewTab = activeTab === 'new';
               
               return (
                 <div key={lead.id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
@@ -114,9 +176,7 @@ const LeadInbox = () => {
                           <MapPin size={14} className="text-slate-400" /> {lead.area}, {lead.city} • {lead.mode}
                         </p>
                       </div>
-                      <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
-                        New Lead
-                      </span>
+                      {getStatusBadge(lead.id)}
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -162,35 +222,42 @@ const LeadInbox = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <button 
-                          onClick={() => handleRejectLead(lead.id)}
-                          className="flex-1 bg-white text-slate-700 border border-slate-200 px-6 py-3 rounded-lg text-[15px] font-semibold hover:bg-slate-50 transition-colors"
-                        >
-                          Not Interested
-                        </button>
-                        <button 
-                          onClick={() => handleAcceptLead(lead)}
-                          disabled={processingId === lead.id || successId === lead.id}
-                          className={`flex-1 px-6 py-3 rounded-lg text-[15px] font-semibold flex items-center justify-center gap-2 disabled:opacity-70 transition-colors ${
-                            successId === lead.id ? 'bg-emerald-600 text-white cursor-not-allowed' : 'bg-[#0b5ed7] text-white hover:bg-blue-700'
-                          }`}
-                        >
-                          {processingId === lead.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-                          {successId === lead.id ? <><CheckCircle2 size={18}/> Request Sent</> : "I'm Interested"}
-                        </button>
-                      </div>
+                      {/* Only show action buttons on New tab */}
+                      {isNewTab ? (
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <button 
+                            onClick={() => handleRejectLead(lead.id)}
+                            className="flex-1 bg-white text-slate-700 border border-slate-200 px-6 py-3 rounded-lg text-[15px] font-semibold hover:bg-slate-50 transition-colors"
+                          >
+                            Not Interested
+                          </button>
+                          <button 
+                            onClick={() => handleAcceptLead(lead)}
+                            disabled={processingId === lead.id || successId === lead.id}
+                            className={`flex-1 px-6 py-3 rounded-lg text-[15px] font-semibold flex items-center justify-center gap-2 disabled:opacity-70 transition-colors ${
+                              successId === lead.id ? 'bg-emerald-600 text-white cursor-not-allowed' : 'bg-[#0b5ed7] text-white hover:bg-blue-700'
+                            }`}
+                          >
+                            {processingId === lead.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                            {successId === lead.id ? <><CheckCircle2 size={18}/> Request Sent</> : "I'm Interested"}
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-slate-500 font-medium italic">
+                          You have already responded to this lead.
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               );
             })}
 
-            {leads.length === 0 && (
+            {displayLeads.length === 0 && (
               <div className="text-center py-16 bg-white rounded-xl border border-slate-200 shadow-sm">
                 <Mail size={40} className="text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-slate-900 mb-1">No new leads</h3>
-                <p className="text-slate-500 text-sm font-medium">There are currently no active requirements in your area.</p>
+                <h3 className="text-lg font-bold text-slate-900 mb-1">{emptyMessages[activeTab]?.title}</h3>
+                <p className="text-slate-500 text-sm font-medium">{emptyMessages[activeTab]?.desc}</p>
               </div>
             )}
           </div>

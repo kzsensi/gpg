@@ -15,6 +15,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiDemos } from '../services/api';
 import logoImg from '../assets/logo.png';
 
 const menuItems = [
@@ -32,6 +33,25 @@ const ParentSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+
+  const [pendingDemosCount, setPendingDemosCount] = React.useState(0);
+  const [tutorResponseCount, setTutorResponseCount] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!user) return;
+    const fetchCounts = async () => {
+      try {
+        const { data: demos } = await apiDemos.getByUser(user.id, 'parent');
+        const pending = demos?.filter(d => ['pending', 'accepted'].includes(d.status)).length || 0;
+        const tutorResponses = demos?.filter(d => d.status === 'pending').length || 0;
+        setPendingDemosCount(pending);
+        setTutorResponseCount(tutorResponses);
+      } catch (err) {
+        console.error('Error fetching demos in parent sidebar', err);
+      }
+    };
+    fetchCounts();
+  }, [user]);
 
   const isActive = (path) =>
     location.pathname === path || location.pathname.startsWith(path + '/');
@@ -63,6 +83,9 @@ const ParentSidebar = () => {
         {menuItems.map((item) => {
           const active = isActive(item.path);
           const Icon = item.icon;
+          const isRequirements = item.path === '/parent/requirements';
+          const isDemos = item.path === '/parent/demos';
+          const badgeCount = isRequirements ? tutorResponseCount : (isDemos ? pendingDemosCount : 0);
           return (
             <button
               key={item.label}
@@ -77,8 +100,28 @@ const ParentSidebar = () => {
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer'
               }`}
             >
-              <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+              <div className="relative">
+                <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+                {badgeCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white" />
+                )}
+              </div>
               <span>{item.label}</span>
+              {isRequirements && tutorResponseCount > 0 && (
+                <span className="ml-auto bg-blue-100 text-blue-600 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                  {tutorResponseCount} New
+                </span>
+              )}
+              {isDemos && pendingDemosCount > 0 && (
+                <span className="ml-auto bg-amber-100 text-amber-600 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                  {pendingDemosCount}
+                </span>
+              )}
+              {item.disabled && (
+                <span className="ml-auto bg-slate-100 text-slate-500 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                  Soon
+                </span>
+              )}
             </button>
           );
         })}

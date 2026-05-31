@@ -38,19 +38,22 @@ const TutorSidebar = () => {
   const { user, profile, signOut } = useAuth();
 
   const [pendingDemosCount, setPendingDemosCount] = React.useState(0);
+  const [hireRequestCount, setHireRequestCount] = React.useState(0);
 
   React.useEffect(() => {
     if (!user) return;
-    const fetchPendingDemos = async () => {
+    const fetchCounts = async () => {
       try {
         const { data: demos } = await apiDemos.getByUser(user.id, 'tutor');
         const pending = demos?.filter(d => d.status === 'pending').length || 0;
+        const hireRequests = demos?.filter(d => d.status === 'hiring_requested').length || 0;
         setPendingDemosCount(pending);
+        setHireRequestCount(hireRequests);
       } catch (err) {
         console.error('Error fetching demos in sidebar', err);
       }
     };
-    fetchPendingDemos();
+    fetchCounts();
   }, [user]);
 
   const isActive = (path) =>
@@ -84,6 +87,7 @@ const TutorSidebar = () => {
           const active = isActive(item.path);
           const Icon = item.icon;
           const isDemo = item.path === '/tutor/demos';
+          const totalDemoBadge = isDemo ? (pendingDemosCount + hireRequestCount) : 0;
           return (
             <button
               key={item.label}
@@ -100,7 +104,7 @@ const TutorSidebar = () => {
             >
               <div className="relative">
                 <Icon size={18} strokeWidth={active ? 2.5 : 2} />
-                {isDemo && pendingDemosCount > 0 && (
+                {totalDemoBadge > 0 && (
                   <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white" />
                 )}
               </div>
@@ -108,6 +112,11 @@ const TutorSidebar = () => {
               {isDemo && pendingDemosCount > 0 && (
                 <span className="ml-auto bg-red-100 text-red-600 text-[11px] font-bold px-2 py-0.5 rounded-full">
                   {pendingDemosCount} New
+                </span>
+              )}
+              {isDemo && hireRequestCount > 0 && pendingDemosCount === 0 && (
+                <span className="ml-auto bg-indigo-100 text-indigo-600 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                  {hireRequestCount} Hire
                 </span>
               )}
               {item.disabled && (

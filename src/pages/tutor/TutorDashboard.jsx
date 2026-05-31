@@ -29,8 +29,8 @@ const TutorDashboard = () => {
   const [stats, setStats] = useState({
     activeLeads: 0,
     upcomingDemos: 0,
-    activeStudents: 8, // Placeholder
-    profileViews: 128 // Placeholder
+    activeStudents: 0,
+    profileViews: 0
   });
   const [loading, setLoading] = useState(true);
   const [recentLeads, setRecentLeads] = useState([]);
