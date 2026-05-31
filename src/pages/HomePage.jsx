@@ -279,37 +279,63 @@ const HomePage = () => {
             <RevealBlock>
                 <section className="py-24 w-full bg-white border-b border-slate-200">
                     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">How GharPeGyan works</h2>
-                        <p className="text-slate-500 text-lg mb-14 max-w-xl">Find the right tutor in three simple steps.</p>
+                        <div className="max-w-xl mb-16">
+                            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4 tracking-tight">How GharPeGyan works</h2>
+                            <p className="text-slate-500 text-lg">Find a trusted tutor for your child in three straightforward steps.</p>
+                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
                             {/* Step 1 */}
-                            <div className="group rounded-2xl border border-slate-200 bg-white p-6 flex flex-col transition-shadow duration-300 hover:shadow-lg">
-                                <div className="w-11 h-11 rounded-lg bg-sky-100 text-[#0b5ed7] font-bold text-lg flex items-center justify-center mb-5">1</div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">Post your requirement.</h3>
-                                <p className="text-slate-500 text-[15px] leading-relaxed mb-6">Fill a quick form with class, subject, budget and preferred mode.</p>
-                                <div className="mt-auto rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
-                                    <img src={stepPostImg} alt="Post requirement" className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <div className="group bg-[#F8FAFC] hover:bg-white border border-slate-100 hover:border-slate-200 rounded-3xl p-8 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative">
+                                <div className="absolute top-6 right-8 text-slate-200/50 font-bold text-6xl select-none group-hover:text-slate-200 transition-colors duration-300 font-mono">01</div>
+                                
+                                <div className="flex items-center gap-4 mb-6 relative z-10">
+                                    <span className="w-10 h-10 rounded-xl bg-[#f1f5f9] border border-slate-200/80 text-slate-700 font-bold text-[15px] flex items-center justify-center shadow-sm shrink-0">1</span>
+                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#0b5ed7] transition-colors duration-300 pr-10 leading-snug">Tell us what you need</h3>
+                                </div>
+                                
+                                <p className="text-slate-600 text-[15px] leading-relaxed mb-8 relative z-10">
+                                    Tell us about your child's class, subjects, and budget. It only takes two minutes, and it helps us understand exactly what kind of tutor you need.
+                                </p>
+                                
+                                <div className="mt-auto rounded-2xl overflow-hidden border border-slate-100/85 bg-white p-2 shadow-sm transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-md">
+                                    <img src={stepPostImg} alt="Post requirement" className="w-full h-44 object-cover rounded-xl" />
                                 </div>
                             </div>
 
                             {/* Step 2 */}
-                            <div className="group rounded-2xl border border-slate-200 bg-white p-6 flex flex-col transition-shadow duration-300 hover:shadow-lg">
-                                <div className="w-11 h-11 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-lg flex items-center justify-center mb-5">2</div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">Get verified matches.</h3>
-                                <p className="text-slate-500 text-[15px] leading-relaxed mb-6">Receive profiles of verified local tutors that match your criteria.</p>
-                                <div className="mt-auto rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
-                                    <img src={stepMatchImg} alt="Get matches" className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <div className="group bg-[#F8FAFC] hover:bg-white border border-slate-100 hover:border-slate-200 rounded-3xl p-8 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative">
+                                <div className="absolute top-6 right-8 text-slate-200/50 font-bold text-6xl select-none group-hover:text-slate-200 transition-colors duration-300 font-mono">02</div>
+                                
+                                <div className="flex items-center gap-4 mb-6 relative z-10">
+                                    <span className="w-10 h-10 rounded-xl bg-[#f1f5f9] border border-slate-200/80 text-slate-700 font-bold text-[15px] flex items-center justify-center shadow-sm shrink-0">2</span>
+                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#0b5ed7] transition-colors duration-300 pr-10 leading-snug">Choose from verified matches</h3>
+                                </div>
+                                
+                                <p className="text-slate-600 text-[15px] leading-relaxed mb-8 relative z-10">
+                                    We'll show you profiles of trusted, verified teachers in your area who match your requirements. No endless scrolling—just good, qualified options.
+                                </p>
+                                
+                                <div className="mt-auto rounded-2xl overflow-hidden border border-slate-100/85 bg-white p-2 shadow-sm transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-md">
+                                    <img src={stepMatchImg} alt="Get matches" className="w-full h-44 object-cover rounded-xl" />
                                 </div>
                             </div>
 
                             {/* Step 3 */}
-                            <div className="group rounded-2xl border border-slate-200 bg-white p-6 flex flex-col transition-shadow duration-300 hover:shadow-lg">
-                                <div className="w-11 h-11 rounded-lg bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mb-5">3</div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">Start with a free demo.</h3>
-                                <p className="text-slate-500 text-[15px] leading-relaxed mb-6">Take a trial class to make sure it's the perfect fit before committing.</p>
-                                <div className="mt-auto rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
-                                    <img src={stepDemoImg} alt="Free demo class" className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <div className="group bg-[#F8FAFC] hover:bg-white border border-slate-100 hover:border-slate-200 rounded-3xl p-8 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative">
+                                <div className="absolute top-6 right-8 text-slate-200/50 font-bold text-6xl select-none group-hover:text-slate-200 transition-colors duration-300 font-mono">03</div>
+                                
+                                <div className="flex items-center gap-4 mb-6 relative z-10">
+                                    <span className="w-10 h-10 rounded-xl bg-[#f1f5f9] border border-slate-200/80 text-slate-700 font-bold text-[15px] flex items-center justify-center shadow-sm shrink-0">3</span>
+                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#0b5ed7] transition-colors duration-300 pr-10 leading-snug">Try a free trial class first</h3>
+                                </div>
+                                
+                                <p className="text-slate-600 text-[15px] leading-relaxed mb-8 relative z-10">
+                                    Meet the tutor and take a free trial demo session. See if your child is comfortable and likes their teaching style before you commit to anything.
+                                </p>
+                                
+                                <div className="mt-auto rounded-2xl overflow-hidden border border-slate-100/85 bg-white p-2 shadow-sm transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-md">
+                                    <img src={stepDemoImg} alt="Free demo class" className="w-full h-44 object-cover rounded-xl" />
                                 </div>
                             </div>
                         </div>
@@ -393,39 +419,28 @@ const HomePage = () => {
                                 </a>
                             </div>
 
-                            <div className="bg-[#F8FAFC] border border-slate-200 rounded-2xl p-8 flex flex-col shadow-sm">
-
-                                <div className="flex justify-between items-center mb-8">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-slate-900">Recent Parent Requests</h2>
-                                        <p className="text-slate-600 text-[15px] mt-1">What parents are looking for right now.</p>
+                            <div className="bg-[#F8FAFC] border border-slate-200 rounded-2xl p-8 md:p-10 flex flex-col justify-center shadow-sm relative overflow-hidden">
+                                {/* Large Elegant Quote Marks */}
+                                <div className="absolute -top-4 -left-2 text-slate-200/50 font-serif text-[180px] leading-none select-none pointer-events-none font-bold">
+                                    &ldquo;
+                                </div>
+                                
+                                <div className="relative z-10 space-y-6">
+                                    <div className="inline-flex items-center gap-2 bg-blue-50 text-[#0b5ed7] text-[13px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-blue-100">
+                                        Founder's Vision
                                     </div>
-                                    <span className="flex h-3 w-3">
-                                        <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                                    </span>
-                                </div>
-
-                                <div className="space-y-4 grow">
-                                    {[
-                                        { cls: "Class 10 CBSE", sub: "Mathematics", loc: "Mumbai", mode: "Home Tutor", budget: "₹500 - ₹800/hr" },
-                                        { cls: "Class 8 ICSE", sub: "Science", loc: "Delhi", mode: "Online", budget: "₹300 - ₹500/hr" },
-                                        { cls: "Primary", sub: "Spoken English", loc: "Pune", mode: "Online", budget: "₹400/hr" },
-                                    ].map((lead, i) => (
-                                        <div key={i} className="p-4 rounded-xl border border-slate-200 bg-white flex justify-between items-center">
-                                            <div>
-                                                <div className="font-bold text-slate-900 text-[15px]">{lead.sub} <span className="text-slate-500 font-normal">for {lead.cls}</span></div>
-                                                <div className="text-[13px] text-slate-600 mt-1 flex items-center gap-1.5 font-medium">
-                                                    <MapPin size={14} className="text-slate-400" /> {lead.loc} • {lead.mode} • {lead.budget}
-                                                </div>
-                                            </div>
-                                            <div className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded">Open</div>
+                                    
+                                    <p className="text-slate-700 text-lg md:text-xl font-medium italic leading-relaxed relative z-10 pl-2 border-l-4 border-blue-500/30">
+                                        "Education is not about memorizing facts, it's about learning to think. At GharPeGyan, we strive to make customized, quality education accessible to every household, helping children discover their true potential through guided mentoring."
+                                    </p>
+                                    
+                                    <div className="pt-4 border-t border-slate-200/80 flex items-center justify-between">
+                                        <div>
+                                            <div className="font-bold text-slate-900 text-[17px] tracking-tight">Anushka</div>
+                                            <div className="text-[13px] text-slate-500 font-medium mt-0.5">Founder, GharPeGyan</div>
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
-                                <a href="#" className="text-center text-[15px] font-semibold text-[#0b5ed7] mt-6 hover:underline inline-block w-full">
-                                    View all requests
-                                </a>
                             </div>
 
                         </div>
