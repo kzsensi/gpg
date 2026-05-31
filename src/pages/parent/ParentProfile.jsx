@@ -481,14 +481,16 @@ const ParentProfile = () => {
             </div>
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
               {[
-                { label: 'Full Name', name: 'name', type: 'text' },
-                { label: 'Phone Number', name: 'phone', type: 'tel' },
-                { label: 'City', name: 'city', type: 'text' },
-                { label: 'Area / Locality', name: 'area', type: 'text' },
+                { label: 'Full Name', name: 'name', type: 'text', required: true },
+                { label: 'Phone Number', name: 'phone', type: 'tel', required: true },
+                { label: 'City', name: 'city', type: 'text', required: true },
+                { label: 'Area / Locality', name: 'area', type: 'text', required: true },
                 { label: 'State', name: 'state', type: 'text' },
               ].map((field) => (
                 <div key={field.name}>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">{field.label}</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    {field.label} {editing && field.required && <span className="text-red-500">*</span>}
+                  </label>
                   {editing ? (
                     <input
                       name={field.name}
@@ -520,10 +522,12 @@ const ParentProfile = () => {
               </div>
               <h2 className="font-semibold text-lg text-slate-900">Academic Details</h2>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
               {accountType === 'parent' && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Child's Name</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    Child's Name {editing && <span className="text-red-500">*</span>}
+                  </label>
                   {editing ? (
                     <input
                       name="childName"
@@ -541,12 +545,14 @@ const ParentProfile = () => {
               )}
               
               {[
-                { label: 'Class / Grade', name: 'childClass' },
+                { label: 'Class / Grade', name: 'childClass', required: true },
                 { label: 'Board', name: 'childBoard' },
                 { label: 'School Name', name: 'childSchool' },
               ].map((field) => (
                 <div key={field.name}>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">{field.label}</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    {field.label} {editing && field.required && <span className="text-red-500">*</span>}
+                  </label>
                   {editing ? (
                     <input
                       name={field.name}
@@ -564,7 +570,9 @@ const ParentProfile = () => {
               ))}
               
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">Subjects of Interest</label>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                  Subjects of Interest {editing && <span className="text-red-500">*</span>}
+                </label>
                 {editing ? (
                   <input
                     name="childSubjects"

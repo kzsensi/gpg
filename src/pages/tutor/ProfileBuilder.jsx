@@ -264,7 +264,7 @@ const ProfileBuilder = () => {
                 />
               </div>
               <div>
-                <label className={labelCls}>Phone Number</label>
+                <label className={labelCls}>Phone Number *</label>
                 <input
                   type="tel"
                   value={formData.phone}
@@ -274,7 +274,7 @@ const ProfileBuilder = () => {
                 />
               </div>
               <div>
-                <label className={labelCls}>City</label>
+                <label className={labelCls}>City *</label>
                 <select
                   value={formData.city}
                   onChange={(e) => handleInputChange('city', e.target.value)}
@@ -285,7 +285,7 @@ const ProfileBuilder = () => {
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className={labelCls}>Education / Qualification</label>
+                <label className={labelCls}>Education / Qualification *</label>
                 <input
                   type="text"
                   value={formData.education}
@@ -314,7 +314,7 @@ const ProfileBuilder = () => {
                 </div>
               </div>
               <div className="md:col-span-2">
-                <label className={labelCls}>About You (Bio)</label>
+                <label className={labelCls}>About You (Bio) *</label>
                 <textarea
                   rows={4}
                   value={formData.bio}
@@ -426,7 +426,7 @@ const ProfileBuilder = () => {
           <div className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className={labelCls}>Teaching Experience (Years)</label>
+                <label className={labelCls}>Teaching Experience (Years) *</label>
                 <input
                   type="number"
                   min="0"
