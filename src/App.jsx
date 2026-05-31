@@ -56,10 +56,13 @@ import AdminDemos from './pages/admin/AdminDemos';
 import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import HelpSupport from './pages/HelpSupport';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* ── Public Pages ── */}
       {/* Anyone can see these, logged in or not */}
       <Route path="/" element={<HomePage />} />
@@ -185,6 +188,7 @@ function App() {
       {/* Any unknown URL redirects to homepage */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
 

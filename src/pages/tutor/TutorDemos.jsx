@@ -350,7 +350,7 @@ const TutorDemos = () => {
                           
                           {meetingLinks[demo.id] && (
                             <a 
-                              href={meetingLinks[demo.id]} 
+                              href={/^https?:\/\//i.test(meetingLinks[demo.id]) ? meetingLinks[demo.id] : 'https://' + meetingLinks[demo.id]} 
                               target="_blank" 
                               rel="noreferrer"
                               className="text-[#0b5ed7] bg-blue-50 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-100 flex items-center gap-2"

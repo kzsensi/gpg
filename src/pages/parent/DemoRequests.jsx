@@ -165,9 +165,15 @@ const DemoRequests = () => {
   const handleJoinSession = async (demoId) => {
     try {
       setJoiningId(demoId);
-      const link = await apiDemos.getSecureLink(demoId);
+      let link = await apiDemos.getSecureLink(demoId);
       if (link) {
-        window.open(link, '_blank');
+        link = link.trim();
+        // Ensure the link has a protocol, otherwise browser treats it as a relative path
+        if (!/^https?:\/\//i.test(link)) {
+          link = 'https://' + link;
+        }
+        // Use location.href for reliable redirect (window.open gets blocked by popup blockers in async contexts on mobile)
+        window.location.href = link;
       }
     } catch (err) {
       alert(err.message || 'Could not get the meeting link.');
