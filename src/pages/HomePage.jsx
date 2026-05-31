@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import heroImg from '../assets/hero.png';
 import heroMobileImg from '../assets/hero-mobile.png';
+import heroNewImg from '../assets/transparent_background_girl.png';
 import founderImg from '../assets/founder.png';
 import puneImg from '../assets/pune.png';
 import hyderabadImg from '../assets/hyderabad.png';
@@ -105,62 +106,91 @@ const HomePage = () => {
             <TopNavigation />
 
             {/* HERO SECTION */}
-            <section className="relative pt-24 pb-20 lg:pt-32 lg:pb-24 bg-white border-b border-slate-200">
+            <section className="relative pt-6 lg:pt-8 pb-20 lg:pb-32 bg-white">
                 <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                    <div className="bg-slate-100 rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-10 lg:p-16 border border-slate-100 shadow-sm">
+                        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
 
-                        <div className="space-y-8 max-w-2xl">
-                            <h1 className="text-5xl lg:text-6xl text-slate-900 leading-[1.1] font-bold tracking-tight">
-                                Find a great teacher for your child.
-                            </h1>
-                            <p className="text-lg lg:text-xl text-slate-600 leading-relaxed max-w-lg">
-                                We connect you with verified, trusted tutors for every subject and grade. Book a free demo class today.
-                            </p>
+                            {/* Text & Buttons */}
+                            <div className="w-full lg:w-1/2 flex flex-col">
+                                <div className="text-center lg:text-left space-y-4 lg:space-y-6 mb-6 lg:mb-8">
+                                    <div className="inline-flex items-center justify-center lg:justify-start gap-2 bg-white text-[#0b5ed7] text-sm font-semibold px-4 py-2 rounded-full border border-slate-200 shadow-sm mx-auto lg:mx-0 w-max">
+                                        <ShieldCheck size={16} /> Trusted by Parents. Loved by Students.
+                                    </div>
+                                    <h1 className="text-[2.5rem] leading-[1.1] sm:text-5xl lg:text-6xl text-slate-900 font-bold tracking-tight">
+                                        Find a great teacher for <span className="text-[#0b5ed7]">your child.</span>
+                                    </h1>
+                                    <p className="text-base sm:text-lg lg:text-xl text-slate-600 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                                        We connect you with verified, trusted tutors for every subject and grade. Book a free demo class today.
+                                    </p>
+                                </div>
 
-                            <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
-                                {(!role || role === 'parent') && (
-                                    <button onClick={() => authNavigate('/search')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                        Find a Teacher <ArrowRight size={18} />
-                                    </button>
-                                )}
-                                {!isAuthenticated && (
-                                    <button onClick={() => navigate('/login')} className="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                        Join as Teacher <GraduationCap size={18} />
-                                    </button>
-                                )}
-                                {role === 'tutor' && (
-                                    <button onClick={() => navigate('/tutor/dashboard')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                        Go to Dashboard <ArrowRight size={18} />
-                                    </button>
-                                )}
-                                {role === 'admin' && (
-                                    <button onClick={() => navigate('/admin/dashboard')} className="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-lg font-semibold text-base hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                        Go to Admin Panel <ArrowRight size={18} />
-                                    </button>
-                                )}
+                                {/* Mobile Image */}
+                                <div className="w-full flex lg:hidden justify-center mb-6">
+                                    <img
+                                        src={heroNewImg}
+                                        alt="Student learning online"
+                                        className="w-full max-w-[280px] sm:max-w-sm object-contain drop-shadow-xl"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 w-full">
+                                    {(!role || role === 'parent') && (
+                                        <button onClick={() => authNavigate('/search')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                            Find a Teacher <ArrowRight size={18} />
+                                        </button>
+                                    )}
+                                    {!isAuthenticated && (
+                                        <button onClick={() => navigate('/login')} className="w-full sm:w-auto bg-white text-emerald-700 border-2 border-emerald-100 px-8 py-4 rounded-xl font-semibold text-base hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                            Join as Teacher <GraduationCap size={18} />
+                                        </button>
+                                    )}
+                                    {role === 'tutor' && (
+                                        <button onClick={() => navigate('/tutor/dashboard')} className="w-full sm:w-auto bg-[#0b5ed7] text-white px-8 py-4 rounded-xl font-semibold text-base hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                            Go to Dashboard <ArrowRight size={18} />
+                                        </button>
+                                    )}
+                                    {role === 'admin' && (
+                                        <button onClick={() => navigate('/admin/dashboard')} className="w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-xl font-semibold text-base hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                            Go to Admin Panel <ArrowRight size={18} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="hidden lg:flex flex-wrap items-center gap-10 pt-10 mt-10 border-t border-slate-200">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-[#0b5ed7]">
+                                            <ShieldCheck size={24} />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 text-[15px]">Verified Tutors</div>
+                                            <div className="text-sm text-slate-500">Carefully screened</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-emerald-600">
+                                            <PlayCircle size={24} />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 text-[15px]">Free Demo</div>
+                                            <div className="text-sm text-slate-500">Book a free class</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-8 pt-6 border-t border-slate-100">
-                                <span className="inline-flex items-center gap-2 text-slate-600 text-[15px] font-medium">
-                                    <ShieldCheck size={20} className="text-[#0b5ed7]" /> Verified Profiles
-                                </span>
-                                <span className="inline-flex items-center gap-2 text-slate-600 text-[15px] font-medium">
-                                    <PlayCircle size={20} className="text-[#0b5ed7]" /> Free Demo Available
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-center lg:justify-end">
-                            <picture className="w-full max-w-lg flex justify-center lg:justify-end">
-                                <source media="(min-width: 1024px)" srcSet={heroImg} />
+                            {/* Desktop Image */}
+                            <div className="hidden lg:flex w-full lg:w-1/2 justify-center lg:justify-end relative">
                                 <img
-                                    src={heroMobileImg}
+                                    src={heroNewImg}
                                     alt="Student learning online"
-                                    className="w-full max-w-sm lg:max-w-lg object-contain rounded-2xl shadow-sm lg:rounded-none lg:shadow-none"
+                                    className="w-full max-w-xl object-contain drop-shadow-2xl z-10 relative"
                                 />
-                            </picture>
-                        </div>
+                                {/* Subtle decorative blob to create contrast without being purple */}
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-slate-200/50 rounded-full blur-3xl -z-10"></div>
+                            </div>
 
+                        </div>
                     </div>
                 </div>
             </section>
