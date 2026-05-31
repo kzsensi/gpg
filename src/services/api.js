@@ -37,7 +37,7 @@ export const apiTutors = {
   getVisibleTutors: async ({ subject, city, page = 1 } = {}) => {
     let query = supabase
       .from('tutor_profiles')
-      .select('id, user_id, name, bio, city, subjects, boards, classes, hourly_rate, rating, total_reviews, experience_years, is_verified, mode, phone, photo_url', { count: 'exact' })
+      .select('user_id, name, bio, city, subjects, boards, classes, hourly_rate, rating, total_reviews, experience_years, is_verified, mode, photo_url', { count: 'exact' })
       .eq('is_visible', true);
 
     if (subject && subject !== 'All Subjects') {
@@ -65,7 +65,7 @@ export const apiTutors = {
   getTutorById: async (userId) => {
     const { data, error } = await supabase
       .from('tutor_profiles')
-      .select('*')
+      .select('user_id, name, bio, city, subjects, boards, classes, hourly_rate, rating, total_reviews, experience_years, is_verified, mode, photo_url, education, availability')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -223,9 +223,9 @@ export const apiDemos = {
     const queryPromise = supabase
       .from('demo_requests')
       .select(`
-        *,
+        id, parent_id, tutor_id, status, note, subject, preferred_mode, scheduled_at, created_at, is_live,
         tutor_profiles(name, city, subjects, photo_url),
-        parent_requirements(student_name, subjects, city, area, class_level, phone, mode)
+        parent_requirements(student_name, subjects, city, area, class_level, mode)
       `)
       .eq(column, userId)
       .order('created_at', { ascending: false });
@@ -243,7 +243,7 @@ export const apiDemos = {
       if (parentIds.length > 0) {
         const { data: profiles } = await supabase
           .from('parent_profiles')
-          .select('user_id, name, phone, city, photo_url')
+          .select('user_id, name')
           .in('user_id', parentIds);
         if (profiles) {
           const map = Object.fromEntries(profiles.map(p => [p.user_id, p]));
@@ -591,7 +591,7 @@ export const apiAdmin = {
       if (parentIds.length > 0) {
         const { data: profiles } = await supabase
           .from('parent_profiles')
-          .select('user_id, name, phone, city')
+          .select('user_id, name')
           .in('user_id', parentIds);
         if (profiles) {
           const map = Object.fromEntries(profiles.map(p => [p.user_id, p]));

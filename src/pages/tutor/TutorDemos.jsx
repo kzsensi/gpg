@@ -295,12 +295,7 @@ const TutorDemos = () => {
                         <div className="text-sm font-bold text-slate-900">{[req.area, req.city].filter(Boolean).join(', ')}</div>
                       </div>
                     )}
-                    {demo.status === 'accepted' && req.phone && (
-                      <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
-                        <div className="text-[10px] text-slate-500 font-bold uppercase">Phone</div>
-                        <div className="text-sm font-bold text-slate-900">{req.phone}</div>
-                      </div>
-                    )}
+
                   </div>
 
                   {/* Parent's optional note (only show clean messages, not old packed format) */}
