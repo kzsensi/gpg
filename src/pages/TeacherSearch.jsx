@@ -196,6 +196,12 @@ const TeacherSearch = () => {
 
   useEffect(() => { fetchTutors(); }, [fetchTutors]);
 
+  // SEO: Set page title
+  useEffect(() => {
+    document.title = 'Find Verified Home Tutors & Online Teachers Near You | GharPeGyan';
+    return () => { document.title = 'GharPeGyan – Verified Home Tutors & Online Tuition in Delhi NCR, India'; };
+  }, []);
+
   // Client-side filtering on top of API results
   const filteredTutors = tutors.filter(t => {
     if (verifiedOnly && !t.is_verified) return false;
@@ -239,8 +245,8 @@ const TeacherSearch = () => {
       <TopNavigation />
 
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Find your perfect tutor</h1>
-        <p className="text-slate-500 mb-6">Search from verified tutors across India</p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Find Verified Home Tutors & Online Teachers Near You</h1>
+        <p className="text-slate-500 mb-6">Browse background-checked tutors for Maths, Science, English, Coding & more across Delhi NCR, India</p>
 
         {/* Search Bar */}
         <div className="bg-white rounded-2xl md:rounded-full shadow-sm border border-slate-200 flex flex-col md:flex-row items-center p-2 mb-8 gap-2 md:gap-0">

@@ -80,6 +80,75 @@ const HomePage = () => {
     const [city, setCity] = useState('');
     const [classType, setClassType] = useState('All');
 
+    // SEO: Set page title and inject FAQ structured data
+    useEffect(() => {
+        document.title = 'GharPeGyan – Verified Home Tutors & Online Tuition in Delhi NCR, India';
+
+        const faqSchema = {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": "How is GharPeGyan different from other tuition websites?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Unlike listing platforms, GharPeGyan personally verifies every home tutor — through identity checks, qualification reviews, and live teaching assessments. We ensure your child learns from a qualified, safe, and trusted teacher."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Can I find tutors for CBSE, ICSE, and State Board exams?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Yes. We have verified tutors experienced in CBSE, ICSE, IGCSE, and State Boards. Whether your child needs help with Class 10 board exams, Class 12 preparation, or competitive exams like IIT-JEE and NEET, we match them with the right teacher."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Is it safe to have a home tutor come to our house?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Absolutely. Every home tutor on GharPeGyan goes through a government ID verification and background screening. We also collect regular feedback from parents and monitor teaching quality to ensure ongoing safety."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "What if the tutor isn't the right fit for my child?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "No problem at all. If the first tutor isn't the right match, we will find you a new verified teacher right away — at no extra cost. Your child's comfort and learning progress are our top priority."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Is the first demo class really free?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Yes, your first demo session with any tutor is 100% free. No payment information needed. It gives you a chance to evaluate the tutor's teaching style before committing to regular home tuition or online classes."
+                    }
+                }
+            ]
+        };
+
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.id = 'faq-schema';
+        script.textContent = JSON.stringify(faqSchema);
+        
+        // Remove existing if re-rendered
+        const existing = document.getElementById('faq-schema');
+        if (existing) existing.remove();
+        
+        document.head.appendChild(script);
+
+        return () => {
+            const el = document.getElementById('faq-schema');
+            if (el) el.remove();
+        };
+    }, []);
+
+
     const handleSearch = () => {
         const params = new URLSearchParams();
         if (subject.trim()) params.append('subject', subject.trim());
@@ -92,24 +161,24 @@ const HomePage = () => {
 
     const faqs = [
         {
-            q: "How is GharPeGyan different from other websites?",
-            a: "We personally verify every teacher on our platform. We make sure they know their subject and know how to actually teach it, so your child understands the concepts instead of just memorizing them."
+            q: "How is GharPeGyan different from other tuition websites?",
+            a: "Unlike listing platforms, GharPeGyan personally verifies every home tutor — through identity checks, qualification reviews, and live teaching assessments. We ensure your child learns from a qualified, safe, and trusted teacher."
         },
         {
-            q: "Can you accommodate specific learning needs?",
-            a: "Yes. Our teachers create specific lesson plans based on where your child is currently at and what they need to achieve, whether that's passing a board exam or just getting better at math."
+            q: "Can I find tutors for CBSE, ICSE, and State Board exams?",
+            a: "Yes. We have verified tutors experienced in CBSE, ICSE, IGCSE, and State Boards. Whether your child needs help with Class 10 board exams, Class 12 preparation, or competitive exams like IIT-JEE and NEET, we match them with the right teacher."
         },
         {
-            q: "Is it safe to have a tutor come to our home?",
-            a: "We take safety seriously. All home tutors go through a background check and carry a verified ID. We also check in regularly to make sure you are comfortable and happy with the classes."
+            q: "Is it safe to have a home tutor come to our house?",
+            a: "Absolutely. Every home tutor on GharPeGyan goes through a government ID verification and background screening. We also collect regular feedback from parents and monitor teaching quality to ensure ongoing safety."
         },
         {
-            q: "What if the teacher isn't a good fit?",
-            a: "No problem at all. If the first teacher isn't the right match for your child, we will find you a new one right away at no extra cost."
+            q: "What if the tutor isn't the right fit for my child?",
+            a: "No problem at all. If the first tutor isn't the right match, we will find you a new verified teacher right away — at no extra cost. Your child's comfort and learning progress are our top priority."
         },
         {
-            q: "Are demo classes actually free?",
-            a: "Yes, the first session with any new tutor is completely free. It gives you a chance to see how they teach before you pay for anything."
+            q: "Is the first demo class really free?",
+            a: "Yes, your first demo session with any tutor is 100% free. No payment information needed. It gives you a chance to evaluate the tutor's teaching style before committing to regular home tuition or online classes."
         }
     ];
 
@@ -129,13 +198,13 @@ const HomePage = () => {
                             <div className="w-full lg:w-1/2 flex flex-col">
                                 <div className="text-center lg:text-left space-y-4 lg:space-y-6 mb-6 lg:mb-8">
                                     <div className="inline-flex items-center justify-center lg:justify-start gap-2 bg-white text-[#0b5ed7] text-sm font-semibold px-4 py-2 rounded-full border border-slate-200 shadow-sm mx-auto lg:mx-0 w-max">
-                                        <ShieldCheck size={16} /> Trusted by Parents. Loved by Students.
+                                        <ShieldCheck size={16} /> Trusted by 500+ Parents Across Delhi NCR
                                     </div>
                                     <h1 className="text-[2.5rem] leading-[1.1] sm:text-5xl lg:text-6xl text-slate-900 font-bold tracking-tight">
-                                        Find a great teacher for <span className="text-[#0b5ed7]">your child.</span>
+                                        Find a Verified Home Tutor for <span className="text-[#0b5ed7]">Your Child</span>
                                     </h1>
                                     <p className="text-base sm:text-lg lg:text-xl text-slate-600 leading-relaxed max-w-lg mx-auto lg:mx-0">
-                                        We connect you with verified, trusted tutors for every subject and grade. Book a free demo class today.
+                                        India's trusted platform for home tuition and online tutoring. Background-verified teachers for Maths, Science, English, Coding & more — Book a free demo class today.
                                     </p>
                                 </div>
 
@@ -143,7 +212,7 @@ const HomePage = () => {
                                 <div className="w-full flex lg:hidden justify-center mb-6">
                                     <img
                                         src={heroNewImg}
-                                        alt="Student learning online"
+                                        alt="Home tutor teaching student in India - GharPeGyan verified tuition"
                                         className="w-full max-w-[280px] sm:max-w-sm object-contain drop-shadow-xl"
                                     />
                                 </div>
@@ -177,8 +246,8 @@ const HomePage = () => {
                                             <ShieldCheck size={24} />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-slate-900 text-[15px]">Verified Tutors</div>
-                                            <div className="text-sm text-slate-500">Carefully screened</div>
+                                            <div className="font-bold text-slate-900 text-[15px]">Background-Verified Tutors</div>
+                                            <div className="text-sm text-slate-500">ID & qualification checked</div>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -186,8 +255,8 @@ const HomePage = () => {
                                             <PlayCircle size={24} />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-slate-900 text-[15px]">Free Demo</div>
-                                            <div className="text-sm text-slate-500">Book a free class</div>
+                                            <div className="font-bold text-slate-900 text-[15px]">Free Demo Class</div>
+                                            <div className="text-sm text-slate-500">Try before you pay</div>
                                         </div>
                                     </div>
                                 </div>
@@ -197,7 +266,7 @@ const HomePage = () => {
                             <div className="hidden lg:flex w-full lg:w-1/2 justify-center lg:justify-end relative">
                                 <img
                                     src={heroNewImg}
-                                    alt="Student learning online"
+                                    alt="Verified home tutor helping student study online at home - GharPeGyan"
                                     className="w-full max-w-xl object-contain drop-shadow-2xl z-10 relative"
                                 />
                                 {/* Subtle decorative blob to create contrast without being purple */}
@@ -260,7 +329,8 @@ const HomePage = () => {
             <RevealBlock>
                 <section className="py-16 w-full bg-[#F8FAFC]">
                     <div className="text-center mb-12 px-4">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-4">Browse by Subject</h2>
+                        <h2 className="text-3xl font-bold text-slate-900 mb-3">Find Home Tutors by Subject</h2>
+                        <p className="text-slate-500 text-lg">Explore verified tutors for every subject — from school academics to competitive exams and extracurriculars.</p>
                     </div>
                     <div className="flex flex-wrap justify-center gap-4 px-4 sm:px-8 max-w-6xl mx-auto">
                         {[
@@ -293,8 +363,8 @@ const HomePage = () => {
                 <section id="how-it-works" className="py-24 w-full bg-white border-b border-slate-200">
                     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="max-w-xl mb-16">
-                            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4 tracking-tight">How GharPeGyan works</h2>
-                            <p className="text-slate-500 text-lg">Find a trusted tutor for your child in three straightforward steps.</p>
+                            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4 tracking-tight">How to Book a Home Tutor on GharPeGyan</h2>
+                            <p className="text-slate-500 text-lg">Get matched with a verified tutor and start learning in three easy steps — no upfront payment required.</p>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
@@ -304,15 +374,15 @@ const HomePage = () => {
                                 
                                 <div className="flex items-center gap-4 mb-6 relative z-10">
                                     <span className="w-10 h-10 rounded-xl bg-[#f1f5f9] border border-slate-200/80 text-slate-700 font-bold text-[15px] flex items-center justify-center shadow-sm shrink-0">1</span>
-                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#0b5ed7] transition-colors duration-300 pr-10 leading-snug">Tell us what you need</h3>
+                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#0b5ed7] transition-colors duration-300 pr-10 leading-snug">Post Your Tuition Requirement</h3>
                                 </div>
                                 
                                 <p className="text-slate-600 text-[15px] leading-relaxed mb-8 relative z-10">
-                                    Tell us about your child's class, subjects, and budget. It only takes two minutes, and it helps us understand exactly what kind of tutor you need.
+                                    Share your child's class, preferred subjects (Maths, Science, English, etc.), board (CBSE, ICSE, State), and budget. It takes just 2 minutes.
                                 </p>
                                 
                                 <div className="mt-auto rounded-2xl overflow-hidden border border-slate-100/85 bg-white p-2 shadow-sm transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-md">
-                                    <img src={stepPostImg} alt="Post requirement" className="w-full h-44 object-cover rounded-xl" />
+                                    <img src={stepPostImg} alt="Parent posting home tuition requirement on GharPeGyan" className="w-full h-44 object-cover rounded-xl" />
                                 </div>
                             </div>
 
@@ -322,15 +392,15 @@ const HomePage = () => {
                                 
                                 <div className="flex items-center gap-4 mb-6 relative z-10">
                                     <span className="w-10 h-10 rounded-xl bg-[#f1f5f9] border border-slate-200/80 text-slate-700 font-bold text-[15px] flex items-center justify-center shadow-sm shrink-0">2</span>
-                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#0b5ed7] transition-colors duration-300 pr-10 leading-snug">Choose from verified matches</h3>
+                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#0b5ed7] transition-colors duration-300 pr-10 leading-snug">Get Matched with Verified Tutors Near You</h3>
                                 </div>
                                 
                                 <p className="text-slate-600 text-[15px] leading-relaxed mb-8 relative z-10">
-                                    We'll show you profiles of trusted, verified teachers in your area who match your requirements. No endless scrolling—just good, qualified options.
+                                    Browse profiles of background-checked, qualified home tutors and online teachers in your locality. Each tutor is hand-vetted by our team.
                                 </p>
                                 
                                 <div className="mt-auto rounded-2xl overflow-hidden border border-slate-100/85 bg-white p-2 shadow-sm transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-md">
-                                    <img src={stepMatchImg} alt="Get matches" className="w-full h-44 object-cover rounded-xl" />
+                                    <img src={stepMatchImg} alt="Verified tutor profiles matched to parent requirement" className="w-full h-44 object-cover rounded-xl" />
                                 </div>
                             </div>
 
@@ -340,15 +410,15 @@ const HomePage = () => {
                                 
                                 <div className="flex items-center gap-4 mb-6 relative z-10">
                                     <span className="w-10 h-10 rounded-xl bg-[#f1f5f9] border border-slate-200/80 text-slate-700 font-bold text-[15px] flex items-center justify-center shadow-sm shrink-0">3</span>
-                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#0b5ed7] transition-colors duration-300 pr-10 leading-snug">Try a free trial class first</h3>
+                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#0b5ed7] transition-colors duration-300 pr-10 leading-snug">Book a Free Demo Class — No Payment Needed</h3>
                                 </div>
                                 
                                 <p className="text-slate-600 text-[15px] leading-relaxed mb-8 relative z-10">
-                                    Meet the tutor and take a free trial demo session. See if your child is comfortable and likes their teaching style before you commit to anything.
+                                    Take a completely free trial session with the tutor. See if your child connects with their teaching style — zero commitment, zero payment.
                                 </p>
                                 
                                 <div className="mt-auto rounded-2xl overflow-hidden border border-slate-100/85 bg-white p-2 shadow-sm transition-transform duration-300 group-hover:scale-[1.02] group-hover:shadow-md">
-                                    <img src={stepDemoImg} alt="Free demo class" className="w-full h-44 object-cover rounded-xl" />
+                                    <img src={stepDemoImg} alt="Student attending free demo tuition class with verified tutor" className="w-full h-44 object-cover rounded-xl" />
                                 </div>
                             </div>
                         </div>
@@ -368,10 +438,10 @@ const HomePage = () => {
                                     <ShieldCheck size={16} /> Every Teacher is Verified
                                 </div>
                                 <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 leading-tight">
-                                    We personally verify every teacher on our platform.
+                                    Every Home Tutor is Background-Verified & Qualified
                                 </h2>
                                 <p className="text-slate-600 text-lg leading-relaxed">
-                                    Your child's safety and learning quality come first. Before any teacher appears on GharPeGyan, they go through a rigorous multi-step verification process.
+                                    Your child's safety comes first. Every tutor on GharPeGyan goes through a multi-step vetting — ID check, qualification verification, and a live teaching assessment — before they can accept students.
                                 </p>
 
                                 <div className="space-y-4 pt-2">
@@ -404,7 +474,7 @@ const HomePage = () => {
                             <div className="flex justify-center lg:justify-end">
                                 <img
                                     src={verifiedImg}
-                                    alt="Teacher verification process"
+                                    alt="GharPeGyan tutor verification process - background check, qualification review, demo assessment"
                                     className="w-full max-w-md lg:max-w-lg object-contain rounded-2xl"
                                 />
                             </div>
@@ -424,7 +494,7 @@ const HomePage = () => {
                             <div className="flex flex-col items-center justify-center p-6">
                                 <img
                                     src={founderImg}
-                                    alt="Founder"
+                                    alt="Anushka - Founder of GharPeGyan tutoring platform"
                                     className="w-64 h-64 sm:w-80 sm:h-80 object-cover rounded-2xl mb-6 shadow-sm border border-slate-200"
                                 />
                                 <a href="#" className="inline-flex items-center gap-2 text-[#0b5ed7] font-semibold text-lg hover:underline">
@@ -444,7 +514,7 @@ const HomePage = () => {
                                     </div>
                                     
                                     <p className="text-slate-700 text-lg md:text-xl font-medium italic leading-relaxed relative z-10 pl-2 border-l-4 border-blue-500/30">
-                                        "Education is not about memorizing facts, it's about learning to think. At GharPeGyan, we strive to make customized, quality education accessible to every household, helping children discover their true potential through guided mentoring."
+                                        "Education is not about memorizing textbooks — it's about learning to think. At GharPeGyan, we bring qualified, caring tutors into every home, so every child gets the personal attention they deserve to excel in their studies."
                                     </p>
                                     
                                     <div className="pt-4 border-t border-slate-200/80 flex items-center justify-between">
@@ -467,7 +537,7 @@ const HomePage = () => {
                     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-3 mb-10">
                             <Compass size={28} className="text-[#0b5ed7]" />
-                            <h2 className="text-3xl font-bold text-slate-900">Popular Locations</h2>
+                            <h2 className="text-3xl font-bold text-slate-900">Home Tutors in Top Cities</h2>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -476,7 +546,7 @@ const HomePage = () => {
                                 onClick={() => authNavigate('/search?city=Delhi')}
                                 className="md:col-span-1 md:row-span-2 relative rounded-xl overflow-hidden shadow-sm h-[300px] md:h-auto border border-slate-200 group text-left w-full block"
                             >
-                                <img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&h=1200&q=80" alt="Delhi NCR" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&h=1200&q=80" alt="Home tutors in Delhi NCR - Noida, Gurgaon, Greater Noida, Ghaziabad" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                 <div className="absolute inset-0 bg-slate-900/40 group-hover:bg-slate-900/30 transition-colors"></div>
                                 
                                 <div className="absolute top-4 right-4 z-10">
@@ -488,7 +558,7 @@ const HomePage = () => {
 
                                 <div className="absolute bottom-6 left-6 right-6 text-white z-10">
                                     <h3 className="text-2xl font-bold mb-1">Delhi NCR</h3>
-                                    <p className="text-xs text-slate-200 font-medium mb-3">Tutors available in your neighborhood</p>
+                                    <p className="text-xs text-slate-200 font-medium mb-3">Verified home tutors & online tutors available now</p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {['Noida', 'Greater Noida', 'Ghaziabad', 'Gurgaon'].map((loc) => (
                                             <span key={loc} className="text-[11px] bg-white/20 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-md font-semibold text-white/90">
@@ -501,7 +571,7 @@ const HomePage = () => {
 
                             {/* Mumbai - Locked */}
                             <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group select-none">
-                                <img src="https://images.unsplash.com/photo-1566552881560-0be862a7c445?auto=format&fit=crop&w=600&h=400&q=80" alt="Mumbai" className="w-full h-full object-cover grayscale opacity-75" />
+                                <img src="https://images.unsplash.com/photo-1566552881560-0be862a7c445?auto=format&fit=crop&w=600&h=400&q=80" alt="Home tutors in Mumbai - coming soon on GharPeGyan" className="w-full h-full object-cover grayscale opacity-75" />
                                 <div className="absolute inset-0 bg-slate-950/60"></div>
                                 <div className="absolute top-4 right-4 z-10">
                                     <span className="inline-flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-sm text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-800">
@@ -516,7 +586,7 @@ const HomePage = () => {
 
                             {/* Bangalore - Locked */}
                             <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group select-none">
-                                <img src="https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=600&h=400&q=80" alt="Bangalore" className="w-full h-full object-cover grayscale opacity-75" />
+                                <img src="https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=600&h=400&q=80" alt="Home tutors in Bangalore - coming soon on GharPeGyan" className="w-full h-full object-cover grayscale opacity-75" />
                                 <div className="absolute inset-0 bg-slate-950/60"></div>
                                 <div className="absolute top-4 right-4 z-10">
                                     <span className="inline-flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-sm text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-800">
@@ -531,7 +601,7 @@ const HomePage = () => {
 
                             {/* Pune - Locked */}
                             <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group select-none">
-                                <img src={puneImg} alt="Pune" className="w-full h-full object-cover grayscale opacity-75" />
+                                <img src={puneImg} alt="Home tutors in Pune - coming soon on GharPeGyan" className="w-full h-full object-cover grayscale opacity-75" />
                                 <div className="absolute inset-0 bg-slate-950/60"></div>
                                 <div className="absolute top-4 right-4 z-10">
                                     <span className="inline-flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-sm text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-800">
@@ -546,7 +616,7 @@ const HomePage = () => {
 
                             {/* Hyderabad - Locked */}
                             <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group select-none">
-                                <img src={hyderabadImg} alt="Hyderabad" className="w-full h-full object-cover grayscale opacity-75" />
+                                <img src={hyderabadImg} alt="Home tutors in Hyderabad - coming soon on GharPeGyan" className="w-full h-full object-cover grayscale opacity-75" />
                                 <div className="absolute inset-0 bg-slate-950/60"></div>
                                 <div className="absolute top-4 right-4 z-10">
                                     <span className="inline-flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-sm text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-800">
@@ -569,10 +639,10 @@ const HomePage = () => {
                     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-12">
                             <h2 className="text-3xl font-bold text-slate-900 mb-4">
-                                Frequently Asked Questions
+                                Home Tuition FAQs — What Parents Ask
                             </h2>
                             <p className="text-slate-600 text-lg">
-                                Simple answers to common questions about our platform.
+                                Clear answers about finding tutors, safety, pricing, and demo classes on GharPeGyan.
                             </p>
                         </div>
 
@@ -616,7 +686,7 @@ const HomePage = () => {
                                 <img src={logoImg} alt="GharPeGyan Logo" className="h-10 w-auto object-contain shrink-0" />
                             </div>
                             <p className="text-[15px] text-slate-400 leading-relaxed max-w-md">
-                                Connecting parents with verified, trustworthy teachers for home and online tuition across India.
+                                India's trusted platform for verified home tutors and online tuition teachers. Available in Delhi NCR — Noida, Greater Noida, Gurgaon, Ghaziabad. Free demo classes for every student.
                             </p>
                         </div>
 
