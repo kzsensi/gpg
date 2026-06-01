@@ -88,6 +88,7 @@ const PostRequirement = () => {
         preferred_time: preferredTime,
         min_budget: feeRange[0],
         max_budget: feeRange[1],
+        notes: formData.notes,
         status: 'active'
       });
       setSuccess(true);

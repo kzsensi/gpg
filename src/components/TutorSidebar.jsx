@@ -23,7 +23,7 @@ const menuItems = [
   { label: 'Dashboard', path: '/tutor/dashboard', icon: LayoutDashboard },
   { label: 'My Profile', path: '/tutor/profile', icon: User },
   { label: 'My Leads', path: '/tutor/leads', icon: Briefcase },
-  { label: 'Demo Sessions', path: '/tutor/demos', icon: PlayCircle },
+  { label: 'Classes & Meetings', path: '/tutor/demos', icon: PlayCircle },
   { label: 'My Students', path: '/tutor/students', icon: Users },
   { label: 'Earnings', path: '/tutor/earnings', icon: IndianRupee, disabled: true },
   { label: 'Messages', path: '/tutor/messages', icon: MessageCircle },
@@ -111,11 +111,11 @@ const TutorSidebar = () => {
               <span>{item.label}</span>
               {isDemo && pendingDemosCount > 0 && (
                 <span className="ml-auto bg-red-100 text-red-600 text-[11px] font-bold px-2 py-0.5 rounded-full">
-                  {pendingDemosCount} New
+                  {pendingDemosCount} Demo
                 </span>
               )}
-              {isDemo && hireRequestCount > 0 && pendingDemosCount === 0 && (
-                <span className="ml-auto bg-indigo-100 text-indigo-600 text-[11px] font-bold px-2 py-0.5 rounded-full">
+              {isDemo && hireRequestCount > 0 && (
+                <span className={`${pendingDemosCount > 0 ? '' : 'ml-auto'} bg-indigo-100 text-indigo-600 text-[11px] font-bold px-2 py-0.5 rounded-full`}>
                   {hireRequestCount} Hire
                 </span>
               )}

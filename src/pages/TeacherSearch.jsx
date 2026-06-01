@@ -141,9 +141,9 @@ const TeacherSearch = () => {
 
   // Search bar state
   const [subjectQuery, setSubjectQuery] = useState(searchParams.get('subject') || '');
-  const [locationQuery, setLocationQuery] = useState('');
+  const [locationQuery, setLocationQuery] = useState(searchParams.get('city') || '');
   const [debouncedSubject, setDebouncedSubject] = useState(subjectQuery);
-  const [debouncedCity, setDebouncedCity] = useState('');
+  const [debouncedCity, setDebouncedCity] = useState(searchParams.get('city') || '');
 
   // Filter state
   const [tutoringMode, setTutoringMode] = useState('All');

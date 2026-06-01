@@ -107,7 +107,7 @@ const AcceptModal = ({ onClose, onSubmit, loading }) => {
 
 const TutorDemos = () => {
   const { user } = useAuth();
-  const [tab, setTab] = useState('upcoming');
+  const [tab, setTab] = useState('demo_requests');
   const [demos, setDemos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -199,24 +199,45 @@ const TutorDemos = () => {
     }
   };
 
-  const filtered = tab === 'all' 
-    ? demos 
-    : demos.filter(d => (d.status === 'accepted' ? 'upcoming' : d.status) === tab);
+  // Tab counts
+  const demoRequestCount = demos.filter(d => d.status === 'pending').length;
+  const upcomingCount = demos.filter(d => d.status === 'accepted').length;
+  const historyCount = demos.filter(d => ['completed', 'hired', 'hiring_requested', 'declined'].includes(d.status)).length;
+
+  const filtered = (() => {
+    switch (tab) {
+      case 'demo_requests': return demos.filter(d => d.status === 'pending');
+      case 'upcoming': return demos.filter(d => d.status === 'accepted');
+      case 'history': return demos.filter(d => ['completed', 'hired', 'hiring_requested', 'declined'].includes(d.status));
+      case 'all': return demos.slice(0, 50);
+      default: return demos;
+    }
+  })();
 
   return (
     <DashboardLayout type="tutor">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-1">Classes & Meetings</h1>
-          <p className="text-slate-500 font-medium">Manage your upcoming and past demo sessions.</p>
+          <p className="text-slate-500 font-medium">Manage your demo requests, upcoming classes, and session history.</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          {[{ key: 'upcoming', label: 'Upcoming' }, { key: 'pending', label: 'Pending' }, { key: 'completed', label: 'History' }, { key: 'all', label: 'All' }].map(t => (
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {[
+            { key: 'demo_requests', label: 'Demo Requests', count: demoRequestCount },
+            { key: 'upcoming', label: 'Upcoming', count: upcomingCount },
+            { key: 'history', label: 'History', count: historyCount },
+            { key: 'all', label: 'All', count: demos.length }
+          ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === t.key ? 'bg-[#0b5ed7] text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${tab === t.key ? 'bg-[#0b5ed7] text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
               {t.label}
+              {t.count > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${tab === t.key ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  {t.count}
+                </span>
+              )}
             </button>
           ))}
         </div>

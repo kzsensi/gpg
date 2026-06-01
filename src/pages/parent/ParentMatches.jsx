@@ -27,6 +27,7 @@ const ParentMatches = () => {
           if (demo.tutor_profiles && !uniqueTutors.has(demo.tutor_id)) {
             uniqueTutors.set(demo.tutor_id, {
               tutor: demo.tutor_profiles,
+              tutor_user_id: demo.tutor_id,
               demoStatus: demo.status,
               demoId: demo.id
             });
@@ -70,8 +71,8 @@ const ParentMatches = () => {
           </div>
         ) : matches.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
-            {matches.map(({ tutor, demoStatus }) => (
-              <div key={tutor.user_id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
+            {matches.map(({ tutor, tutor_user_id, demoStatus }) => (
+              <div key={tutor_user_id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6">
                 <div className="shrink-0 flex justify-center">
                   {tutor.photo_url ? (
                     <img src={tutor.photo_url} alt={tutor.name} className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover shadow-sm border-2 border-white" />
@@ -85,7 +86,7 @@ const ParentMatches = () => {
                 <div className="flex-1 flex flex-col">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="text-xl font-bold text-slate-900 cursor-pointer hover:text-[#0b5ed7] transition-colors" onClick={() => navigate(`/tutor/${tutor.user_id}`)}>{tutor.name}</h3>
+                      <h3 className="text-xl font-bold text-slate-900 cursor-pointer hover:text-[#0b5ed7] transition-colors" onClick={() => navigate(`/teacher/${tutor_user_id}`)}>{tutor.name}</h3>
                       <div className="flex flex-wrap items-center gap-2 mt-1">
                         <span className="text-sm font-semibold text-[#0b5ed7] bg-blue-50 px-2 py-0.5 rounded-md">
                           {tutor.subjects?.[0] || 'Tutor'}

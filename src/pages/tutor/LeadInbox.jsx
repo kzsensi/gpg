@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
-import { apiRequirements, apiDemos } from '../../services/api';
+import { apiRequirements, apiDemos, apiTutors } from '../../services/api';
 import { Mail, Clock, CheckCircle2, MapPin, User, IndianRupee, FileText } from 'lucide-react';
 
 const timeAgo = (date) => {
@@ -21,8 +21,9 @@ const timeAgo = (date) => {
 
 const LeadInbox = () => {
   const { user } = useAuth();
-  const [allLeads, setAllLeads] = useState([]);       // All active requirements
+  const [allLeads, setAllLeads] = useState([]);       // All active requirements (filtered by tutor's subjects/city)
   const [tutorDemos, setTutorDemos] = useState([]);    // All demos this tutor has
+  const [tutorProfile, setTutorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -34,12 +35,33 @@ const LeadInbox = () => {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      // Fetch both: all active leads AND this tutor's existing demos
-      const [leadsRes, demosRes] = await Promise.all([
+      // Fetch tutor's profile, all active leads, AND this tutor's existing demos
+      const [profile, leadsRes, demosRes] = await Promise.all([
+        apiTutors.getTutorById(user.id),
         apiRequirements.getActiveLeads(),
         apiDemos.getByUser(user.id, 'tutor')
       ]);
-      setAllLeads(leadsRes.data || []);
+      setTutorProfile(profile);
+
+      // Filter leads to only show those matching tutor's subjects and city
+      const rawLeads = leadsRes.data || [];
+      const tutorSubjects = profile?.subjects || [];
+      const tutorCity = (profile?.city || '').toLowerCase();
+
+      const filtered = rawLeads.filter(lead => {
+        // Subject match: at least one of the lead's subjects must match one of the tutor's subjects
+        const leadSubjects = lead.subjects || [];
+        const subjectMatch = tutorSubjects.length === 0 || leadSubjects.length === 0 ||
+          leadSubjects.some(s => tutorSubjects.includes(s));
+
+        // City match: lead's city should match tutor's city (case-insensitive partial match)
+        const leadCity = (lead.city || '').toLowerCase();
+        const cityMatch = !tutorCity || !leadCity || leadCity.includes(tutorCity) || tutorCity.includes(leadCity);
+
+        return subjectMatch && cityMatch;
+      });
+
+      setAllLeads(filtered);
       setTutorDemos(demosRes.data || []);
     } catch (err) {
       setError(err.message);
@@ -63,8 +85,8 @@ const LeadInbox = () => {
 
   // Split leads into tabs based on whether tutor has already responded
   const newLeads = allLeads.filter(lead => !demosByRequirement[lead.id]);
-  const interestedLeads = allLeads.filter(lead => demosByRequirement[lead.id] === 'pending');
-  const contactedLeads = allLeads.filter(lead => ['accepted', 'confirmed'].includes(demosByRequirement[lead.id]));
+  const interestedLeads = allLeads.filter(lead => demosByRequirement[lead.id] === 'tutor_interested');
+  const contactedLeads = allLeads.filter(lead => ['pending', 'accepted', 'confirmed'].includes(demosByRequirement[lead.id]));
   const closedLeads = allLeads.filter(lead => ['completed', 'hired', 'hiring_requested', 'declined'].includes(demosByRequirement[lead.id]));
 
   // Pick which leads to show based on active tab
@@ -89,7 +111,7 @@ const LeadInbox = () => {
         requirement_id: lead.id,
         subject: lead.subjects?.[0] || null,
         preferred_mode: lead.mode || null,
-        status: 'pending' // 'pending' means Tutor is interested but Parent hasn't accepted yet
+        status: 'tutor_interested' // Parent must accept before this becomes a real demo request
       });
       setSuccessId(lead.id);
       // Re-fetch so the lead moves from New to Interested tab

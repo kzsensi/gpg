@@ -97,8 +97,8 @@ const ParentRequirements = () => {
             {requirements.map(req => {
               // Find all demo requests for this specific requirement
               const relatedResponses = demoRequests.filter(d => d.requirement_id === req.id);
-              const pendingResponses = relatedResponses.filter(d => d.status === 'pending');
-              const acceptedResponses = relatedResponses.filter(d => d.status === 'accepted');
+              const pendingResponses = relatedResponses.filter(d => d.status === 'tutor_interested');
+              const acceptedResponses = relatedResponses.filter(d => ['pending', 'accepted', 'hiring_requested', 'hired'].includes(d.status));
 
               return (
                 <div key={req.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -134,7 +134,7 @@ const ParentRequirements = () => {
                          <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 shrink-0"><CheckCircle2 size={20}/></div>
                          <div>
                             <p className="text-sm font-bold text-slate-900">Tutor Accepted!</p>
-                            <p className="text-sm text-slate-600 font-medium mt-0.5">You accepted <b>{acceptedResponses[0].tutor_profiles?.name}</b> for this requirement. Demo scheduled!</p>
+                             <p className="text-sm text-slate-600 font-medium mt-0.5">You accepted <b>{acceptedResponses[0].tutor_profiles?.name}</b>. They will confirm the demo schedule shortly. <span className="text-emerald-700 font-bold">{acceptedResponses[0].status === 'accepted' ? 'Demo scheduled!' : 'Waiting for tutor to confirm.'}</span></p>
                          </div>
                          <button onClick={() => navigate('/parent/demos')} className="ml-auto bg-white text-emerald-700 border border-emerald-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-100 transition-colors">
                            View Demo
@@ -158,7 +158,7 @@ const ParentRequirements = () => {
                                  </div>
                                </div>
                                <div className="flex gap-2">
-                                 <button onClick={() => navigate('/search')} className="flex-1 bg-white text-slate-600 border border-slate-200 px-3 py-2 rounded-md text-sm font-semibold hover:bg-slate-50">
+                                 <button onClick={() => navigate(`/teacher/${response.tutor_id}`)} className="flex-1 bg-white text-slate-600 border border-slate-200 px-3 py-2 rounded-md text-sm font-semibold hover:bg-slate-50">
                                    View Profile
                                  </button>
                                  <button 

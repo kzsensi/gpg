@@ -182,9 +182,11 @@ const DemoRequests = () => {
     }
   };
 
-  const filtered = filter === 'all' 
+  const filtered = (filter === 'all' 
     ? demos 
-    : demos.filter(d => (d.status === 'accepted' ? 'confirmed' : d.status) === filter);
+    : demos.filter(d => (d.status === 'accepted' ? 'confirmed' : d.status) === filter)
+  ).filter(d => d.status !== 'tutor_interested');
+
 
   return (
     <DashboardLayout type="parent">
@@ -234,11 +236,11 @@ const DemoRequests = () => {
                 <div key={demo.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex gap-4 items-center">
-                      <div className="w-14 h-14 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xl">
+                      <div className="w-14 h-14 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xl cursor-pointer" onClick={() => navigate(`/teacher/${demo.tutor_id}`)}>
                         {tutorName.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg text-slate-900">{tutorName}</h3>
+                        <h3 className="font-bold text-lg text-slate-900 cursor-pointer hover:text-[#0b5ed7] transition-colors" onClick={() => navigate(`/teacher/${demo.tutor_id}`)}>{tutorName}</h3>
                         <p className="text-sm text-slate-500 font-medium flex items-center gap-1">
                           <MapPin size={12} /> {demo.tutor_profiles?.city || 'Remote'}
                           {demo.tutor_profiles?.subjects?.length > 0 && (

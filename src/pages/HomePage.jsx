@@ -7,7 +7,8 @@ import {
     ChevronRight, Calculator, FlaskConical, Atom, Languages,
     Music, Briefcase, GraduationCap, ArrowRight, PlayCircle,
     Terminal, Microscope, FileSpreadsheet, Mic, MessageCircle,
-    CheckCircle2, ChevronDown, MonitorPlay, Compass, ChevronLeft
+    CheckCircle2, ChevronDown, MonitorPlay, Compass, ChevronLeft,
+    Lock
 } from 'lucide-react';
 import heroImg from '../assets/hero.png';
 import heroMobileImg from '../assets/hero-mobile.png';
@@ -458,43 +459,91 @@ const HomePage = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <div className="md:col-span-1 md:row-span-2 relative rounded-xl overflow-hidden shadow-sm h-[300px] md:h-auto border border-slate-200 group">
-                                <img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&h=1200&q=80" alt="Delhi" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                <div className="absolute inset-0 bg-slate-900/40"></div>
-                                <div className="absolute bottom-6 left-6 text-white">
-                                    <h3 className="text-2xl font-bold mb-1">Delhi</h3>
+                            {/* Delhi NCR - Active */}
+                            <button
+                                onClick={() => authNavigate('/search?city=Delhi')}
+                                className="md:col-span-1 md:row-span-2 relative rounded-xl overflow-hidden shadow-sm h-[300px] md:h-auto border border-slate-200 group text-left w-full block"
+                            >
+                                <img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&h=1200&q=80" alt="Delhi NCR" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <div className="absolute inset-0 bg-slate-900/40 group-hover:bg-slate-900/30 transition-colors"></div>
+                                
+                                <div className="absolute top-4 right-4 z-10">
+                                    <span className="inline-flex items-center gap-1.5 bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>
+                                        Active
+                                    </span>
+                                </div>
+
+                                <div className="absolute bottom-6 left-6 right-6 text-white z-10">
+                                    <h3 className="text-2xl font-bold mb-1">Delhi NCR</h3>
+                                    <p className="text-xs text-slate-200 font-medium mb-3">Tutors available in your neighborhood</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {['Noida', 'Greater Noida', 'Ghaziabad', 'Gurgaon'].map((loc) => (
+                                            <span key={loc} className="text-[11px] bg-white/20 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-md font-semibold text-white/90">
+                                                {loc}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </button>
+
+                            {/* Mumbai - Locked */}
+                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group select-none">
+                                <img src="https://images.unsplash.com/photo-1566552881560-0be862a7c445?auto=format&fit=crop&w=600&h=400&q=80" alt="Mumbai" className="w-full h-full object-cover grayscale opacity-75" />
+                                <div className="absolute inset-0 bg-slate-950/60"></div>
+                                <div className="absolute top-4 right-4 z-10">
+                                    <span className="inline-flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-sm text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-800">
+                                        <Lock size={11} className="text-slate-500" /> Locked
+                                    </span>
+                                </div>
+                                <div className="absolute bottom-5 left-5 text-white/70">
+                                    <h3 className="text-xl font-bold mb-0.5">Mumbai</h3>
+                                    <p className="text-[11px] text-slate-400 font-medium">Coming soon</p>
                                 </div>
                             </div>
 
-                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group">
-                                <img src="https://images.unsplash.com/photo-1566552881560-0be862a7c445?auto=format&fit=crop&w=600&h=400&q=80" alt="Mumbai" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                <div className="absolute inset-0 bg-slate-900/40"></div>
-                                <div className="absolute bottom-5 left-5 text-white">
-                                    <h3 className="text-xl font-bold mb-1">Mumbai</h3>
+                            {/* Bangalore - Locked */}
+                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group select-none">
+                                <img src="https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=600&h=400&q=80" alt="Bangalore" className="w-full h-full object-cover grayscale opacity-75" />
+                                <div className="absolute inset-0 bg-slate-950/60"></div>
+                                <div className="absolute top-4 right-4 z-10">
+                                    <span className="inline-flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-sm text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-800">
+                                        <Lock size={11} className="text-slate-500" /> Locked
+                                    </span>
+                                </div>
+                                <div className="absolute bottom-5 left-5 text-white/70">
+                                    <h3 className="text-xl font-bold mb-0.5">Bangalore</h3>
+                                    <p className="text-[11px] text-slate-400 font-medium">Coming soon</p>
                                 </div>
                             </div>
 
-                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group">
-                                <img src="https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=600&h=400&q=80" alt="Bangalore" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                <div className="absolute inset-0 bg-slate-900/40"></div>
-                                <div className="absolute bottom-5 left-5 text-white">
-                                    <h3 className="text-xl font-bold mb-1">Bangalore</h3>
+                            {/* Pune - Locked */}
+                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group select-none">
+                                <img src={puneImg} alt="Pune" className="w-full h-full object-cover grayscale opacity-75" />
+                                <div className="absolute inset-0 bg-slate-950/60"></div>
+                                <div className="absolute top-4 right-4 z-10">
+                                    <span className="inline-flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-sm text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-800">
+                                        <Lock size={11} className="text-slate-500" /> Locked
+                                    </span>
+                                </div>
+                                <div className="absolute bottom-5 left-5 text-white/70">
+                                    <h3 className="text-xl font-bold mb-0.5">Pune</h3>
+                                    <p className="text-[11px] text-slate-400 font-medium">Coming soon</p>
                                 </div>
                             </div>
 
-                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group">
-                                <img src={puneImg} alt="Pune" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                <div className="absolute inset-0 bg-slate-900/40"></div>
-                                <div className="absolute bottom-5 left-5 text-white">
-                                    <h3 className="text-xl font-bold mb-1">Pune</h3>
+                            {/* Hyderabad - Locked */}
+                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group select-none">
+                                <img src={hyderabadImg} alt="Hyderabad" className="w-full h-full object-cover grayscale opacity-75" />
+                                <div className="absolute inset-0 bg-slate-950/60"></div>
+                                <div className="absolute top-4 right-4 z-10">
+                                    <span className="inline-flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-sm text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-800">
+                                        <Lock size={11} className="text-slate-500" /> Locked
+                                    </span>
                                 </div>
-                            </div>
-
-                            <div className="relative rounded-xl overflow-hidden shadow-sm h-[220px] border border-slate-200 group">
-                                <img src={hyderabadImg} alt="Hyderabad" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                <div className="absolute inset-0 bg-slate-900/40"></div>
-                                <div className="absolute bottom-5 left-5 text-white">
-                                    <h3 className="text-xl font-bold mb-1">Hyderabad</h3>
+                                <div className="absolute bottom-5 left-5 text-white/70">
+                                    <h3 className="text-xl font-bold mb-0.5">Hyderabad</h3>
+                                    <p className="text-[11px] text-slate-400 font-medium">Coming soon</p>
                                 </div>
                             </div>
                         </div>

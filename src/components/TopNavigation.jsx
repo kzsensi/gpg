@@ -21,7 +21,7 @@ const tutorLinks = [
   { label: 'Dashboard', path: '/tutor/dashboard', icon: LayoutDashboard },
   { label: 'My Profile', path: '/tutor/profile', icon: User },
   { label: 'My Leads', path: '/tutor/leads', icon: Briefcase },
-  { label: 'Demo Sessions', path: '/tutor/demos', icon: PlayCircle },
+  { label: 'Classes & Meetings', path: '/tutor/demos', icon: PlayCircle },
   { label: 'My Students', path: '/tutor/students', icon: Users },
   { label: 'Messages', path: '/tutor/messages', icon: MessageCircle },
   { label: 'Reviews', path: '/tutor/reviews', icon: Star },
