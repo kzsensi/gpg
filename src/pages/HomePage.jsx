@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import TopNavigation from '../components/TopNavigation';
 import {
@@ -290,7 +290,7 @@ const HomePage = () => {
 
             {/* HOW IT WORKS */}
             <RevealBlock>
-                <section className="py-24 w-full bg-white border-b border-slate-200">
+                <section id="how-it-works" className="py-24 w-full bg-white border-b border-slate-200">
                     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="max-w-xl mb-16">
                             <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4 tracking-tight">How GharPeGyan works</h2>
@@ -623,20 +623,19 @@ const HomePage = () => {
                         <div>
                             <h4 className="text-white font-semibold mb-4 text-[15px]">Platform</h4>
                             <ul className="space-y-3">
-                                <li><a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">Find a Teacher</a></li>
-                                <li><a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">Post Requirement</a></li>
-                                <li><a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">Register as Tutor</a></li>
-                                <li><a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">How it Works</a></li>
+                                <li><Link to="/search" className="text-slate-400 hover:text-white transition-colors text-sm">Find a Teacher</Link></li>
+                                <li><Link to="/parent/post-requirement" className="text-slate-400 hover:text-white transition-colors text-sm">Post Requirement</Link></li>
+                                <li><Link to="/login" className="text-slate-400 hover:text-white transition-colors text-sm">Register as Tutor</Link></li>
+                                <li><a href="#how-it-works" className="text-slate-400 hover:text-white transition-colors text-sm">How it Works</a></li>
                             </ul>
                         </div>
 
                         <div>
                             <h4 className="text-white font-semibold mb-4 text-[15px]">Company</h4>
                             <ul className="space-y-3">
-                                <li><a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">About Us</a></li>
-                                <li><a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">Contact Support</a></li>
-                                <li><a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">Privacy Policy</a></li>
-                                <li><a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">Terms of Service</a></li>
+                                <li><Link to="/help" className="text-slate-400 hover:text-white transition-colors text-sm">Contact Support</Link></li>
+                                <li><Link to="/privacy" className="text-slate-400 hover:text-white transition-colors text-sm">Privacy Policy</Link></li>
+                                <li><Link to="/terms" className="text-slate-400 hover:text-white transition-colors text-sm">Terms of Service</Link></li>
                             </ul>
                         </div>
                     </div>
@@ -644,9 +643,9 @@ const HomePage = () => {
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
                         <p>© 2026 GharPeGyan. All rights reserved.</p>
                         <div className="flex gap-4">
-                            <a href="#" className="hover:text-white transition-colors">Twitter</a>
-                            <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
-                            <a href="#" className="hover:text-white transition-colors">Instagram</a>
+                            <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Twitter</a>
+                            <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">LinkedIn</a>
+                            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Instagram</a>
                         </div>
                     </div>
                 </div>

@@ -157,7 +157,7 @@ const PrivacyPolicy = () => {
               <strong>Right to Correction:</strong> Request correction of inaccurate or incomplete personal data
             </li>
             <li>
-              <strong>Right to Erasure:</strong> Request deletion of your personal data, subject to legal retention requirements
+              <strong>Right to Erasure (Account Deletion):</strong> Request deletion of your personal data. You can delete your account and all associated data (including profile, requirements, messages, and bookings) directly via the Delete Account button in the Help & Support page when logged in.
             </li>
             <li>
               <strong>Right to Withdraw Consent:</strong> Withdraw your consent for data processing at any time
@@ -267,22 +267,10 @@ const PrivacyPolicy = () => {
           </h3>
           <div className="flex flex-wrap gap-3">
             <Link
-              to="/legal/terms-of-service"
+              to="/terms"
               className="text-sm text-[#0b5ed7] bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium"
             >
               Terms of Service
-            </Link>
-            <Link
-              to="/legal/refund-policy"
-              className="text-sm text-[#0b5ed7] bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium"
-            >
-              Refund Policy
-            </Link>
-            <Link
-              to="/legal/community-rules"
-              className="text-sm text-[#0b5ed7] bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium"
-            >
-              Community Rules
             </Link>
           </div>
         </div>

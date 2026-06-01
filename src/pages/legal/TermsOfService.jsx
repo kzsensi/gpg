@@ -40,9 +40,7 @@ const TermsOfService = () => {
             <li>Notify us immediately of any unauthorised access to your account</li>
           </ul>
           <p>
-            You must be at least 18 years of age to create an account. Teachers must verify their identity
-            and qualifications through our verification process. We reserve the right to suspend or terminate
-            accounts that violate these Terms.
+            You must be at least 18 years of age to create an account. If you are a student under 18 years of age, you may only access the Platform and attend sessions under the supervision and with the explicit consent of a parent or legal guardian who registered the account on your behalf. Teachers must verify their identity and qualifications through our verification process. We reserve the right to suspend or terminate accounts that violate these Terms.
           </p>
         </>
       ),
@@ -130,11 +128,7 @@ const TermsOfService = () => {
             <li>All fees are inclusive of applicable GST unless stated otherwise</li>
           </ul>
           <p>
-            Refunds are subject to our{' '}
-            <Link to="/legal/refund-policy" className="text-[#0b5ed7] font-medium hover:underline">
-              Refund Policy
-            </Link>
-            . Disputes should be raised within 7 days of the transaction.
+            Refunds are subject to our refund policies (contact support for assistance). Disputes should be raised within 7 days of the transaction.
           </p>
         </>
       ),
@@ -147,7 +141,7 @@ const TermsOfService = () => {
           <p>
             Your privacy is important to us. Our collection and use of personal information is governed by
             our{' '}
-            <Link to="/legal/privacy-policy" className="text-[#0b5ed7] font-medium hover:underline">
+            <Link to="/privacy" className="text-[#0b5ed7] font-medium hover:underline">
               Privacy Policy
             </Link>
             , which is incorporated into these Terms by reference.
@@ -292,22 +286,10 @@ const TermsOfService = () => {
           </h3>
           <div className="flex flex-wrap gap-3">
             <Link
-              to="/legal/privacy-policy"
+              to="/privacy"
               className="text-sm text-[#0b5ed7] bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium"
             >
               Privacy Policy
-            </Link>
-            <Link
-              to="/legal/refund-policy"
-              className="text-sm text-[#0b5ed7] bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium"
-            >
-              Refund Policy
-            </Link>
-            <Link
-              to="/legal/community-rules"
-              className="text-sm text-[#0b5ed7] bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium"
-            >
-              Community Rules
             </Link>
           </div>
         </div>
