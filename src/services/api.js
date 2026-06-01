@@ -263,6 +263,24 @@ export const apiDemos = {
           const map = Object.fromEntries(profiles.map(p => [p.user_id, p]));
           data.forEach(d => { d.parent_profiles = map[d.parent_id] || null; });
         }
+
+        // Fallback: for parents without a parent_profiles row, get name from auth metadata
+        const missingNameIds = parentIds.filter(id =>
+          !data.some(d => d.parent_id === id && d.parent_profiles?.name)
+        );
+        if (missingNameIds.length > 0) {
+          try {
+            const { data: authNames } = await supabase.rpc('get_user_names', { user_ids: missingNameIds });
+            if (authNames && authNames.length > 0) {
+              const authMap = Object.fromEntries(authNames.map(a => [a.user_id, a.name]));
+              data.forEach(d => {
+                if (d.parent_id && !d.parent_profiles?.name && authMap[d.parent_id]) {
+                  d.parent_profiles = { user_id: d.parent_id, name: authMap[d.parent_id] };
+                }
+              });
+            }
+          } catch (_) { /* silently ignore — name stays as "Parent" fallback */ }
+        }
       }
     }
 

@@ -3,21 +3,5 @@
 
 User-agent: *
 Allow: /
-Allow: /search
-Allow: /login
-Allow: /help
-Allow: /terms
-Allow: /privacy
 
-# Block authenticated dashboard routes (not useful for search engines)
-Disallow: /parent/
-Disallow: /tutor/
-Disallow: /admin/
-Disallow: /otp-verify
-
-# Block API endpoints and internal paths
-Disallow: /api/
-Disallow: /*.json$
-
-# Sitemap location
 Sitemap: https://gharpegyan.com/sitemap.xml

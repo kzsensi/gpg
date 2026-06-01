@@ -70,26 +70,16 @@ function convertToWebP(file) {
         const canvas = document.createElement('canvas');
         
         // Let's constrain the size further to 256x256 to keep it extremely tiny (under 20-30KB)
-        const size = Math.min(256, Math.max(img.width, img.height));
-        let width = img.width;
-        let height = img.height;
-        
-        if (width > height) {
-          if (width > size) {
-            height = Math.round((height * size) / width);
-            width = size;
-          }
-        } else {
-          if (height > size) {
-            width = Math.round((width * size) / height);
-            height = size;
-          }
-        }
+        // Crop the image to a centered 1:1 aspect ratio square to prevent stretching or narrowing
+        const minDimension = Math.min(img.width, img.height);
+        const sx = (img.width - minDimension) / 2;
+        const sy = (img.height - minDimension) / 2;
+        const targetSize = Math.min(256, minDimension);
 
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = targetSize;
+        canvas.height = targetSize;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
+        ctx.drawImage(img, sx, sy, minDimension, minDimension, 0, 0, targetSize, targetSize);
         
         canvas.toBlob((blob) => {
           if (blob) {
