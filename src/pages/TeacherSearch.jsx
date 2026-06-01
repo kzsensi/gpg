@@ -146,7 +146,7 @@ const TeacherSearch = () => {
   const [debouncedCity, setDebouncedCity] = useState(searchParams.get('city') || '');
 
   // Filter state
-  const [tutoringMode, setTutoringMode] = useState('All');
+  const [tutoringMode, setTutoringMode] = useState(searchParams.get('mode') || 'All');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [minRating, setMinRating] = useState(0);
   const [minExperience, setMinExperience] = useState('Any');

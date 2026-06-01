@@ -659,3 +659,23 @@ export const apiAdmin = {
     };
   },
 };
+
+// ==========================================
+// 9. ACCOUNT MANAGEMENT
+// ==========================================
+
+export const apiAccount = {
+  /**
+   * Permanently delete the currently logged-in user's account and all their data.
+   * Calls the `delete_my_account` Postgres RPC function which runs with SECURITY DEFINER.
+   * The function uses auth.uid() server-side — so it can only ever delete the caller's own account.
+   *
+   * Deletes (in order):
+   *   messages, reviews, demo_requests, parent_requirements, tutor_profiles, parent_profiles, auth.users
+   */
+  deleteMyAccount: async () => {
+    const { error } = await supabase.rpc('delete_my_account');
+    if (error) throw new Error(error.message);
+  },
+};
+

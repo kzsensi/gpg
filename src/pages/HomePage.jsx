@@ -76,6 +76,19 @@ const HomePage = () => {
     };
 
     const [activeFaq, setActiveFaq] = useState(1);
+    const [subject, setSubject] = useState('');
+    const [city, setCity] = useState('');
+    const [classType, setClassType] = useState('All');
+
+    const handleSearch = () => {
+        const params = new URLSearchParams();
+        if (subject.trim()) params.append('subject', subject.trim());
+        if (city.trim()) params.append('city', city.trim());
+        if (classType && classType !== 'All') params.append('mode', classType);
+
+        const queryString = params.toString() ? `?${params.toString()}` : '';
+        authNavigate(`/search${queryString}`);
+    };
 
     const faqs = [
         {
@@ -202,42 +215,41 @@ const HomePage = () => {
 
                     <div className="flex-1 flex items-center gap-3 px-6 py-4 w-full md:border-r border-slate-200">
                         <Search className="text-[#0b5ed7] shrink-0" size={20} />
-                        <input type="text" placeholder="What subject?" className="w-full bg-transparent outline-none text-slate-900 placeholder:text-slate-500 font-medium text-[15px]" />
-                    </div>
-
-                    <div className="flex-1 flex items-center gap-3 px-6 py-4 w-full md:border-r border-slate-200">
-                        <BookOpen className="text-[#0b5ed7] shrink-0" size={20} />
-                        <select defaultValue="" className="w-full bg-transparent outline-none text-slate-900 font-medium text-[15px] cursor-pointer appearance-none">
-                            <option value="" disabled>Select Subject</option>
-                            <option>Mathematics</option>
-                            <option>Science</option>
-                            <option>English</option>
-                        </select>
-                        <ChevronDown size={16} className="text-slate-400 shrink-0" />
+                        <input
+                            type="text"
+                            placeholder="What subject?"
+                            value={subject}
+                            onChange={(e) => setSubject(e.target.value)}
+                            className="w-full bg-transparent outline-none text-slate-900 placeholder:text-slate-500 font-medium text-[15px]"
+                        />
                     </div>
 
                     <div className="flex-1 flex items-center gap-3 px-6 py-4 w-full md:border-r border-slate-200">
                         <MapPin className="text-[#0b5ed7] shrink-0" size={20} />
-                        <select defaultValue="" className="w-full bg-transparent outline-none text-slate-900 font-medium text-[15px] cursor-pointer appearance-none">
-                            <option value="" disabled>Enter City</option>
-                            <option>Delhi</option>
-                            <option>Mumbai</option>
-                            <option>Pune</option>
-                        </select>
-                        <ChevronDown size={16} className="text-slate-400 shrink-0" />
+                        <input
+                            type="text"
+                            placeholder="Enter City"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            className="w-full bg-transparent outline-none text-slate-900 placeholder:text-slate-500 font-medium text-[15px]"
+                        />
                     </div>
 
                     <div className="flex-1 flex items-center gap-3 px-6 py-4 w-full md:border-r border-slate-200">
                         <MonitorPlay className="text-[#0b5ed7] shrink-0" size={20} />
-                        <select defaultValue="" className="w-full bg-transparent outline-none text-slate-900 font-medium text-[15px] cursor-pointer appearance-none">
-                            <option value="" disabled>Class Type</option>
-                            <option>Online</option>
-                            <option>Home Tutor</option>
+                        <select
+                            value={classType}
+                            onChange={(e) => setClassType(e.target.value)}
+                            className="w-full bg-transparent outline-none text-slate-900 font-medium text-[15px] cursor-pointer appearance-none"
+                        >
+                            <option value="All">All Class Types</option>
+                            <option value="Online">Online</option>
+                            <option value="Home">Home Tutor</option>
                         </select>
                         <ChevronDown size={16} className="text-slate-400 shrink-0" />
                     </div>
 
-                    <button onClick={() => authNavigate('/search')} className="w-full md:w-32 py-4 md:py-0 md:h-14 rounded-lg bg-[#0b5ed7] text-white flex items-center justify-center shrink-0 hover:bg-blue-700 transition-colors md:ml-2">
+                    <button onClick={handleSearch} className="w-full md:w-32 py-4 md:py-0 md:h-14 rounded-lg bg-[#0b5ed7] text-white flex items-center justify-center shrink-0 hover:bg-blue-700 transition-colors md:ml-2">
                         <span className="font-semibold text-[15px]">Search</span>
                     </button>
 
