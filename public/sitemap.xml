@@ -1,40 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <!-- Public Pages -->
   <url><loc>https://gharpegyan.com/</loc></url>
   <url><loc>https://gharpegyan.com/search</loc></url>
   <url><loc>https://gharpegyan.com/login</loc></url>
   <url><loc>https://gharpegyan.com/help</loc></url>
   <url><loc>https://gharpegyan.com/terms</loc></url>
   <url><loc>https://gharpegyan.com/privacy</loc></url>
-
-  <!-- Parent Pages -->
-  <url><loc>https://gharpegyan.com/parent/dashboard</loc></url>
-  <url><loc>https://gharpegyan.com/parent/profile</loc></url>
-  <url><loc>https://gharpegyan.com/parent/post-requirement</loc></url>
-  <url><loc>https://gharpegyan.com/parent/requirements</loc></url>
-  <url><loc>https://gharpegyan.com/parent/demos</loc></url>
-  <url><loc>https://gharpegyan.com/parent/matches</loc></url>
-  <url><loc>https://gharpegyan.com/parent/messages</loc></url>
-
-  <!-- Tutor Pages -->
-  <url><loc>https://gharpegyan.com/tutor/dashboard</loc></url>
-  <url><loc>https://gharpegyan.com/tutor/profile</loc></url>
-  <url><loc>https://gharpegyan.com/tutor/leads</loc></url>
-  <url><loc>https://gharpegyan.com/tutor/demos</loc></url>
-  <url><loc>https://gharpegyan.com/tutor/students</loc></url>
-  <url><loc>https://gharpegyan.com/tutor/reviews</loc></url>
-  <url><loc>https://gharpegyan.com/tutor/availability</loc></url>
-  <url><loc>https://gharpegyan.com/tutor/messages</loc></url>
-
-  <!-- Admin Pages -->
-  <url><loc>https://gharpegyan.com/admin/dashboard</loc></url>
-  <url><loc>https://gharpegyan.com/admin/tutors</loc></url>
-  <url><loc>https://gharpegyan.com/admin/parents</loc></url>
-  <url><loc>https://gharpegyan.com/admin/demos</loc></url>
-
-  <!-- Auth Pages -->
-  <url><loc>https://gharpegyan.com/otp-verify</loc></url>
-
 </urlset>

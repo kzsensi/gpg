@@ -2,6 +2,11 @@
 # https://gharpegyan.com
 
 User-agent: *
-Allow: /
+Disallow: /parent/
+Disallow: /tutor/
+Disallow: /admin/
+Disallow: /otp-verify
+Disallow: /api/
+Disallow: /*.json$
 
 Sitemap: https://gharpegyan.com/sitemap.xml
